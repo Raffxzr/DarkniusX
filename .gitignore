@@ -1,0 +1,8 @@
+out/
+artifacts/
+AnyKernel3/
+ak3-*/
+*.zip
+*.img
+*.log
+.DS_Store
