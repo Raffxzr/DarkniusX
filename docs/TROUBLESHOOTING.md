@@ -1,6 +1,6 @@
 # Troubleshooting DarkniusX
 
-## 1. Saat sync / setup
+## 1. During sync / setup
 
 ### `repo: command not found`
 
@@ -10,7 +10,7 @@ Arch/CachyOS:
 sudo pacman -S repo
 ```
 
-Atau pasang launcher:
+Or install the launcher:
 
 ```bash
 mkdir -p ~/.local/bin
@@ -19,16 +19,16 @@ chmod a+x ~/.local/bin/repo
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-### `repo sync` gagal / koneksi putus
+### `repo sync` fails / connection drops
 
-Ulangi dengan job lebih sedikit:
+Retry with fewer jobs:
 
 ```bash
 cd "$HOME/darkniusx/aosp"
 repo sync -c -j4 --no-tags --no-clone-bundle --force-sync
 ```
 
-Jika masih gagal, cek disk:
+If it still fails, check the disk:
 
 ```bash
 df -h "$HOME"
@@ -36,8 +36,8 @@ df -h "$HOME"
 
 ### `error: Your local changes to the following files would be overwritten`
 
-Biasanya karena integrasi KernelSU ada di `common/`. Script `setup.sh`
-memakai `--force-sync`; jika masih gagal:
+This usually happens because the KernelSU integration lives in `common/`.
+`setup.sh` uses `--force-sync`; if the error persists:
 
 ```bash
 cd "$HOME/darkniusx/aosp/common"
@@ -45,55 +45,54 @@ git checkout -f
 git reset --hard
 ```
 
-Lalu jalankan `bash scripts/setup.sh --no-sync`.
+Then run `bash scripts/setup.sh --no-sync`.
 
-### `repo sync` lambat / mentok di prebuilts
+### `repo sync` is slow / stuck on prebuilts
 
-Prebuilt clang cukup besar. Pastikan tidak ada proxy yang memblokir
-`android.googlesource.com` dan `storage.googleapis.com`. Coba:
+The prebuilt clang is fairly large. Make sure no proxy blocks
+`android.googlesource.com` and `storage.googleapis.com`. Try:
 
 ```bash
 repo sync -c -j2 --no-tags --no-clone-bundle --force-sync prebuilts-master/clang/host/linux-x86
 ```
 
-## 2. Saat build
+## 2. During the build
 
-### `clang: error: unknown argument` / fitur compiler tidak dikenal
+### `clang: error: unknown argument` / unknown compiler feature
 
-Cek apakah fragment benar-benar terpakai:
+Check whether the fragment is actually being used:
 
 ```bash
 grep -n "CLANG_PREBUILT_BIN" "$HOME/darkniusx/aosp/.darkniusx/build/fragment.sh"
 "$HOME/darkniusx/aosp/prebuilts-master/clang/host/linux-x86/clang-r416183b/bin/clang" --version
 ```
 
-Pastikan `CLANG_PREBUILT_BIN` mengarah ke `clang-r416183b`, bukan
+Make sure `CLANG_PREBUILT_BIN` points to `clang-r416183b`, not
 `clang-r563880b`.
 
-Jika source benar-benar membutuhkan compiler lebih baru, unduh
-`clang-r563880b` terpisah dan ubah path di `build/fragment.sh`. Jangan
-mengubah `build.config.common` langsung; perubahan itu akan hilang saat
-overlay.
+If the source really requires a newer compiler, download `clang-r563880b`
+separately and change the path in `build/fragment.sh`. Do not edit
+`build.config.common` directly; those changes are lost during the overlay.
 
-### `check_defconfig` gagal / `savedefconfig does not match`
+### `check_defconfig` fails / `savedefconfig does not match`
 
-Fragment tidak ter-source. Cek:
+The fragment was not sourced. Check:
 
 ```bash
 grep -n "BUILD_CONFIG_FRAGMENTS" "$HOME/darkniusx/logs/build-"*.log | head
 ```
 
-Pastikan file ini ada:
+Make sure this file exists:
 
 ```text
 $HOME/darkniusx/aosp/.darkniusx/build/fragment.sh
 ```
 
-dan `POST_DEFCONFIG_CMDS` di file tersebut menimpa `check_defconfig`.
+and that `POST_DEFCONFIG_CMDS` in that file overrides `check_defconfig`.
 
 ### `ERROR: CONFIG_KSU is not enabled`
 
-Setup KernelSU gagal atau fragment KSU tidak terpakai. Cek:
+The KernelSU setup failed or the KSU fragment was not applied. Check:
 
 ```bash
 cd "$HOME/darkniusx/aosp/common"
@@ -103,7 +102,8 @@ grep -n 'drivers/kernelsu/Kconfig' drivers/Kconfig
 git -C KernelSU-Next describe --tags --exact-match
 ```
 
-Harus ada symlink, entri Makefile/Kconfig, dan tag `v3.4.2`. Jika tidak:
+There must be a symlink, Makefile/Kconfig entries, and the `v3.4.2` tag. If
+not:
 
 ```bash
 cd "$HOME/darkniusx/aosp/common"
@@ -112,15 +112,16 @@ curl -LSs https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/v3.4.2/k
 
 ### `Killed` / build OOM
 
-Gejala: proses `clang` atau `ld.lld` hilang, log berhenti tanpa error jelas.
+Symptom: the `clang` or `ld.lld` process disappears and the log stops without
+a clear error.
 
-Solusi:
+Solutions:
 
 ```bash
 CPUSET=0-1 bash scripts/build.sh vanilla thin
 ```
 
-atau tambah swap:
+or add swap:
 
 ```bash
 sudo fallocate -l 16G /swapfile
@@ -129,22 +130,23 @@ sudo mkswap /swapfile
 sudo swapon /swapfile
 ```
 
-Jangan gunakan `LTO=full` dengan RAM 15 GiB dan 6+ job.
+Do not use `LTO=full` with 15 GiB RAM and 6+ jobs.
 
 ### `ld.lld: error: unable to find library -l...`
 
-Biasanya hermetic toolchain / sysroot tidak lengkap. Pastikan sync selesai:
+This usually means the hermetic toolchain / sysroot is incomplete. Make sure
+the sync completed:
 
 ```bash
 cd "$HOME/darkniusx/aosp"
 repo sync -c -j4 --force-sync build prebuilts/build-tools prebuilts/kernel-build-tools
 ```
 
-Cek juga `clang-r416183b/bin/ld.lld` ada.
+Also check that `clang-r416183b/bin/ld.lld` exists.
 
-### `Image.lz4` tidak ditemukan setelah build
+### `Image.lz4` is missing after the build
 
-Build berhenti sebelum tahap copy. Cari error pertama:
+The build stopped before the copy stage. Find the first error:
 
 ```bash
 grep -n -iE "error:|fatal:|failed|Killed" "$HOME/darkniusx/logs/build-vanilla-"*.log | head -30
@@ -152,14 +154,14 @@ grep -n -iE "error:|fatal:|failed|Killed" "$HOME/darkniusx/logs/build-vanilla-"*
 
 ### `compare_to_symbol_list` / KMI mismatch
 
-Berarti ada perubahan config yang mengubah exported symbol. Kembalikan
-fragment ke baseline, lalu tambahkan perubahan satu per satu. Jangan mematikan
-opsi GKI yang memengaruhi ABI (lihat `config/base.config`).
+This means a config change modified an exported symbol. Revert the fragment to
+the baseline, then add changes one at a time. Do not disable GKI options that
+affect the ABI (see `config/base.config`).
 
 ### `modules list out of date`
 
-`CONFIG_KSU=y` seharusnya built-in, bukan module. Jika KSU ter-build sebagai
-`m`, ubah menjadi `y`. Cek:
+`CONFIG_KSU=y` should be built-in, not a module. If KSU was built as `m`,
+change it to `y`. Check:
 
 ```bash
 grep '^CONFIG_KSU=' "$HOME/darkniusx/out/ksu/common/.config"
@@ -167,16 +169,16 @@ grep '^CONFIG_KSU=' "$HOME/darkniusx/out/ksu/common/.config"
 
 ### `taskset: failed to set ... affinity`
 
-Container/host membatasi CPU. Cek CPU yang tersedia:
+The container/host restricts CPU affinity. Check the available CPUs:
 
 ```bash
 taskset -pc $$
 nproc
 ```
 
-Gunakan `CPUSET` yang valid, misalnya `CPUSET=0-1`.
+Use a valid `CPUSET`, for example `CPUSET=0-1`.
 
-## 3. Saat flashing
+## 3. During flashing
 
 ### `adb: no devices/emulators found`
 
@@ -186,32 +188,33 @@ adb start-server
 adb devices
 ```
 
-Pastikan USB debugging aktif dan authorize RSA key di perangkat.
+Make sure USB debugging is enabled and the RSA key is authorized on the
+device.
 
-### Recovery menolak zip (signature verification)
+### Recovery rejects the zip (signature verification)
 
-Zip AnyKernel3 tidak ditandatangani dengan key OTA pabrik. Gunakan custom
-recovery (TWRP/OrangeFox) atau flash `boot.img` lewat fastboot. Jangan mematikan
-verifikasi OTA secara permanen kecuali paham risikonya.
+The AnyKernel3 zip is not signed with the factory OTA key. Use a custom
+recovery (TWRP/OrangeFox) or flash a `boot.img` via fastboot. Do not disable
+OTA verification permanently unless you understand the risks.
 
 ### Bootloop
 
-1. Tunggu 15 menit.
-2. Masuk recovery/fastboot.
+1. Wait 15 minutes.
+2. Enter recovery/fastboot.
 3. Restore `boot-stock.img`.
-4. Jika perlu, restore `vendor_boot`/`vendor_dlkm`.
-5. Jangan flash ulang zip yang sama.
+4. Restore `vendor_boot`/`vendor_dlkm` if needed.
+5. Do not flash the same zip again.
 
-Penyebab umum:
+Common causes:
 
-- KMI tidak cocok (`android13-11` vs `android12-9`).
-- Zip untuk device lain.
-- Boot image/header tidak kompatibel.
-- `vendor_dlkm` dimodifikasi bersamaan.
+- KMI mismatch (`android13-11` vs `android12-9`).
+- Zip for a different device.
+- Incompatible boot image/header.
+- `vendor_dlkm` was modified at the same time.
 
-### WiFi / Bluetooth / touch mati
+### WiFi / Bluetooth / touch not working
 
-Cek:
+Check:
 
 ```bash
 adb shell uname -r
@@ -219,34 +222,36 @@ adb shell dmesg | grep -iE 'version magic|module verification failed|failed to l
 adb shell cat /proc/modules | grep -iE 'wlan|bt|touch'
 ```
 
-Jika `uname -r` bukan `android12-9`, kernel salah KMI. Restore boot stock.
+If `uname -r` is not `android12-9`, the kernel has the wrong KMI. Restore the
+stock boot image.
 
-Jika module gagal karena vermagic, cek flag:
+If a module fails because of vermagic, check the flags:
 
 ```bash
 adb shell dmesg | grep -i "should be"
 ```
 
-Dengan `CONFIG_MODVERSIONS`, release string diabaikan; yang dibandingkan
-adalah flag setelah spasi. Pastikan tidak mengubah `CONFIG_SMP`,
-`CONFIG_PREEMPT`, atau `CONFIG_MODULE_UNLOAD`/`MODVERSIONS`.
+With `CONFIG_MODVERSIONS`, the release string is ignored; only the flags after
+the first space are compared. Make sure `CONFIG_SMP`, `CONFIG_PREEMPT`, and
+`CONFIG_MODULE_UNLOAD`/`MODVERSIONS` were not changed.
 
-### KernelSU Manager bilang "not installed"
+### KernelSU Manager says "not installed"
 
-- Pastikan memakai **KernelSU-Next Manager**, bukan KernelSU resmi.
-- Versi manager harus cocok dengan kernel `v3.4.2`.
-- Cek `adb shell su -v`; jika tidak ada, kernel KSU tidak terpasang atau
-  manager tidak punya izin.
-- Cek `dmesg | grep -i kernelsu`.
+- Make sure you are using **KernelSU-Next Manager**, not the official KernelSU
+  app.
+- The manager version must match kernel `v3.4.2`.
+- Check `adb shell su -v`; if it is missing, the KSU kernel is not installed or
+  the manager lacks permission.
+- Check `dmesg | grep -i kernelsu`.
 
-### `su` tidak ditemukan
+### `su` is not found
 
-KernelSU tidak menyediakan binary `su` di `/system`; manager yang menyediakan
-interface. Gunakan manager yang benar dan grant root ke shell/terminal.
+KernelSU does not provide a `su` binary in `/system`; the manager provides the
+interface. Use the correct manager and grant root to the shell/terminal.
 
-## 4. Log yang perlu dikumpulkan
+## 4. Logs to collect
 
-Saat melaporkan masalah, sertakan:
+When reporting a problem, include:
 
 ```bash
 uname -r
@@ -258,7 +263,7 @@ dmesg | tail -200
 cat /proc/modules | head -50
 ```
 
-Untuk build:
+For builds:
 
 ```text
 $HOME/darkniusx/logs/build-<variant>-<timestamp>.log
@@ -266,23 +271,23 @@ $HOME/darkniusx/out/<variant>/common/.config
 $HOME/darkniusx/artifacts/<variant>/BUILD_INFO.txt
 ```
 
-## 5. Mulai dari bersih
+## 5. Starting clean
 
-Jika build tree sudah terlalu berantakan:
+If the build tree is too messy:
 
 ```bash
-# Hapus output satu varian
+# Remove one variant's output
 rm -rf "$HOME/darkniusx/out/vanilla"
 rm -rf "$HOME/darkniusx/artifacts/vanilla"
 
-# Overlay ulang source (tanpa sync)
+# Re-apply the source overlay (without syncing)
 bash scripts/setup.sh --no-sync
 
-# Build ulang
+# Rebuild
 bash scripts/build.sh vanilla thin
 ```
 
-Untuk sync ulang total (hati-hati, download besar):
+For a full re-sync (warning: large download):
 
 ```bash
 rm -rf "$HOME/darkniusx/aosp"

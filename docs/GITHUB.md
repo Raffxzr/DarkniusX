@@ -1,23 +1,23 @@
-# Publikasi ke GitHub
+# Publishing to GitHub
 
-## 1. Inisialisasi repository
+## 1. Initialize the repository
 
-Dari folder `DarkniusX`:
+From the `DarkniusX` folder:
 
 ```bash
 git init
-git config core.filemode false   # NTFS tidak menyimpan executable bit
+git config core.filemode false   # NTFS does not preserve executable bits
 git add .
 git commit -m "DarkniusX: GKI 5.10 build scaffold (Vanilla + KernelSU Next)"
 ```
 
-Buat repository di GitHub (web atau `gh`):
+Create the repository on GitHub (web or `gh`):
 
 ```bash
 gh repo create DarkniusX --public --source=. --remote=origin --push
 ```
 
-Atau:
+Or:
 
 ```bash
 git remote add origin https://github.com/Raffxzr/DarkniusX.git
@@ -25,22 +25,22 @@ git branch -M main
 git push -u origin main
 ```
 
-Repo publik: <https://github.com/Raffxzr/DarkniusX>.
+Public repository: <https://github.com/Raffxzr/DarkniusX>.
 
-## 2. Yang tidak boleh di-commit
+## 2. What must not be committed
 
-`.gitignore` sudah mengecualikan:
+`.gitignore` already excludes:
 
-- `out/` — output build (puluhan GB)
-- `artifacts/` — zip dan Image
-- `AnyKernel3/` — template hasil clone
+- `out/` — build output (tens of GB)
+- `artifacts/` — zips and images
+- `AnyKernel3/` — cloned template
 - `*.zip`, `*.img`, `*.log`
 
-Jangan commit source AOSP. Source diambil ulang lewat `scripts/setup.sh`.
+Do not commit the AOSP source tree. It is fetched again by `scripts/setup.sh`.
 
-## 3. Rilis
+## 3. Release
 
-Nama file yang disarankan:
+Suggested asset names:
 
 ```text
 DarkniusX-vanilla-5.10.272-20261105.zip
@@ -50,7 +50,7 @@ BUILD_INFO-vanilla.txt
 BUILD_INFO-ksu.txt
 ```
 
-Buat release (tandai `--prerelease` selama belum diuji di perangkat):
+Create the release (use `--prerelease` until it has been tested on a device):
 
 ```bash
 gh release create v1.0.0 \
@@ -63,54 +63,54 @@ gh release create v1.0.0 \
   --prerelease
 ```
 
-`SHA256SUMS`, config, ABI, dan manifest dapat ditambahkan sebagai asset
-tambahan setelah release dibuat.
+`SHA256SUMS`, configs, ABI, and the manifest can be added as extra assets after
+the release is created.
 
-Isi release notes minimal:
+Release notes should include at least:
 
-- kernel version dan source commit,
-- varian dan fitur,
-- KMI yang didukung (universal `android12-5.10` / KMI 9, tanpa codename),
-- Known issues,
-- cara flash dan rollback (link ke `docs/FLASHING.md`),
-- checksum.
+- kernel version and source commit,
+- variants and features,
+- supported KMI (universal `android12-5.10` / KMI 9, no codename),
+- known issues,
+- flashing and rollback instructions (link to `docs/FLASHING.md`),
+- checksums.
 
 ## 4. GitHub Actions?
 
-Build kernel GKI penuh **tidak realistis** di GitHub-hosted runner gratis:
+A full GKI kernel build is **not realistic** on free GitHub-hosted runners:
 
-- disk runner terbatas (sekitar 14 GB),
-- source + prebuilt + output bisa 60 GB+,
-- Full LTO butuh RAM besar,
-- waktu build panjang dan mudah kena timeout.
+- runner disk is limited (around 14 GB),
+- source + prebuilts + output can exceed 60 GB,
+- Full LTO needs a lot of RAM,
+- builds take a long time and are prone to timeouts.
 
-Pilihan yang masuk akal:
+Reasonable options:
 
-1. **Build lokal + upload release** (disarankan).
-2. **Self-hosted runner** di mesin sendiri, lalu workflow hanya menjalankan
-   `scripts/setup.sh` dan `scripts/build.sh`.
-3. CI hanya untuk lint script (`bash -n`, `shellcheck`) dan validasi config,
-   bukan build penuh.
+1. **Build locally + upload the release** (recommended).
+2. **Self-hosted runner** on your own machine, with a workflow that only runs
+   `scripts/setup.sh` and `scripts/build.sh`.
+3. CI only for script linting (`bash -n`, `shellcheck`) and config validation,
+   not a full build.
 
-Jika memakai self-hosted runner, pastikan workspace berada di filesystem
-Linux dan runner tidak di-share dengan pekerjaan lain yang bisa menghapus
+If you use a self-hosted runner, make sure the workspace is on a Linux
+filesystem and the runner is not shared with other jobs that might delete
 `$HOME/darkniusx`.
 
-## 5. Update rilis
+## 5. Release updates
 
-1. Ubah `FORK_COMMIT` di `scripts/env.sh` (jika update kernel).
+1. Change `FORK_COMMIT` in `scripts/env.sh` (when updating the kernel).
 2. `bash scripts/setup.sh --no-sync`
 3. `bash scripts/build.sh all thin`
-4. Uji di perangkat.
+4. Test on a device.
 5. `bash scripts/freeze.sh`
-6. Commit perubahan config/script (bukan artifact).
-7. Buat release baru dengan tag `vX.Y.Z`.
+6. Commit config/script changes (not artifacts).
+7. Create a new release tagged `vX.Y.Z`.
 
-## 6. Keamanan
+## 6. Security
 
-- Jangan commit file `local.properties`, token, atau kredensial.
-- Jangan commit backup partisi perangkat.
-- Jangan lampirkan `vmlinux` berukuran besar kecuali diperlukan untuk debug.
-- Cantumkan hash SHA256 untuk setiap zip.
-- Cantumkan peringatan bahwa flashing berisiko dan hanya untuk KMI yang
-  didukung.
+- Do not commit `local.properties`, tokens, or credentials.
+- Do not commit device partition backups.
+- Do not attach a large `vmlinux` unless it is needed for debugging.
+- Include a SHA256 hash for every zip.
+- Include a warning that flashing is risky and only supported for the stated
+  KMI.

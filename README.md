@@ -1,114 +1,113 @@
 # DarkniusX
 
-Kernel GKI **Linux 5.10 (android12-5.10)** yang difokuskan untuk stabilitas dan performa harian, tersedia dalam dua varian:
+A GKI **Linux 5.10 (android12-5.10)** kernel focused on stability and daily
+performance, available in two variants:
 
-| Varian | Root | Keterangan |
+| Variant | Root | Notes |
 |---|---|---|
-| **Vanilla** | Tidak | tanpa Root |
-| **KernelSU Next** | Ya | Kernel + KernelSU Next `v3.4.2` (built-in, `CONFIG_KSU=y`) |
+| **Vanilla** | No | No root |
+| **KernelSU Next** | Yes | Kernel + KernelSU Next `v3.4.2` (built-in, `CONFIG_KSU=y`) |
 
-## Basis
+## Base
 
 - AOSP common kernel: `common-android12-5.10` (KMI generation **9**)
-- Fork sumber: [`lifeats666ln/kernel_common-5.10`](https://github.com/lifeats666ln/kernel_common-5.10) branch `android12-5.10`
-- Commit : `f04d8c2a2f78a836d81d7ab0c1ab675f4ddddc9f` (Linux **5.10.272**)
-- Toolchain: AOSP Clang `r416183b` manifest `common-android12-5.10`
+- Source fork: [`lifeats666ln/kernel_common-5.10`](https://github.com/lifeats666ln/kernel_common-5.10), branch `android12-5.10`
+- Pinned commit: `f04d8c2a2f78a836d81d7ab0c1ab675f4ddddc9f` (Linux **5.10.272**)
+- Toolchain: AOSP Clang `r416183b` from the `common-android12-5.10` manifest
 - Build system: legacy `build/build.sh`
 
+## Quick start
 
-## Mulai cepat
-
-Semua perintah dijalankan dari folder project ini:
+Run every command from this project folder:
 
 ```bash
-# 1. Cek/instal dependensi host (Arch/CachyOS)
+# 1. Check/install host dependencies (Arch/CachyOS)
 bash scripts/install-deps.sh
 
-# 2. Sync AOSP + overlay fork (sekali saja, butuh beberapa GB)
+# 2. Sync AOSP + overlay the fork (once; downloads several GB)
 bash scripts/setup.sh
 
-# 3. Build varian Vanilla (ThinLTO, aman untuk RAM 15 GiB)
+# 3. Build the Vanilla variant (ThinLTO, safe for 15 GiB RAM)
 bash scripts/build.sh vanilla thin
 
-# 4. Build varian KernelSU Next
+# 4. Build the KernelSU Next variant
 bash scripts/build.sh ksu thin
 
-# atau keduanya sekaligus
+# or build both
 bash scripts/build.sh all thin
 ```
 
-Hasil build dan zip AnyKernel3 ada di:
+Build outputs and AnyKernel3 zips are written to:
 
 ```text
 $HOME/darkniusx/artifacts/vanilla/
 $HOME/darkniusx/artifacts/ksu/
 ```
 
-Panduan lengkap (Indonesia): [`docs/PANDUAN-BUILD.md`](docs/PANDUAN-BUILD.md)
+Full guide: [`docs/BUILD.md`](docs/BUILD.md)
 
-## Kompatibilitas perangkat
+## Device compatibility
 
-Zip bersifat **universal**: tidak terikat pada satu codename atau vendor.
-Selama perangkat memakai GKI `android12-5.10` (KMI generation 9) dan kernel
-stock-nya berada di partisi `boot`, zip ini bisa dipakai. Cek sebelum flashing:
+The zip is **universal**: it is not tied to a single codename or vendor. It can
+be used on any device that runs GKI `android12-5.10` (KMI generation 9) and
+keeps its stock kernel in the `boot` partition. Check before flashing:
 
 ```bash
 adb shell uname -r
-# harus mengandung: -android12-9-
+# must contain: -android12-9-
 ```
 
-Jika hasilnya `android13-11` atau KMI lain, **jangan flash**. Vendor module
-tidak akan cocok.
+If the output contains `android13-11` or another KMI, **do not flash**. Vendor
+modules will not match.
 
-`do.devicecheck=0`, jadi `ro.product.device` tidak diperiksa. Pengamanannya
-ada di `anykernel.sh`: installer membaca kernel yang sedang ada di `boot` dan
-membatalkan flash jika kernel tersebut bukan `-android12-9-` atau build
-DarkniusX sebelumnya (atau jika kernel tidak berada di `boot`). Ini sengaja
-lebih ketat daripada cek codename, karena codename yang sama bisa memakai KMI
-berbeda antar-firmware.
+`do.devicecheck=0`, so `ro.product.device` is not checked. The safety guard is
+in `anykernel.sh`: the installer reads the kernel currently installed in
+`boot` and aborts if it is neither `-android12-9-` (stock) nor a previous
+DarkniusX build. This is intentionally stricter than a codename check, because
+the same codename can use different KMIs across firmware versions.
 
-Perangkat target harus punya partisi `boot` (dan biasanya `vendor_boot` serta
-`vendor_dlkm`). Selalu backup `boot`, `vendor_boot`, dan `vendor_dlkm` sebelum
-mencoba kernel kustom. Flasher GPU overclock tetap project terpisah dan tidak
-digabung ke zip ini.
+The target device must have a `boot` partition (and usually `vendor_boot` and
+`vendor_dlkm`). Always back up `boot`, `vendor_boot`, and `vendor_dlkm` before
+trying a custom kernel. The GPU overclock flasher remains a separate project
+and is not merged into this zip.
 
-## Struktur project
+## Project layout
 
 ```text
 DarkniusX/
-├── build/fragment.sh       # hook BUILD_CONFIG_FRAGMENTS untuk build AOSP
+├── build/fragment.sh       # BUILD_CONFIG_FRAGMENTS hook for the AOSP build
 ├── config/
-│   ├── base.config         # fragment config bersama (Vanilla)
-│   └── ksu.config          # tambahan CONFIG_KSU=y
+│   ├── base.config         # shared config fragment (Vanilla)
+│   └── ksu.config          # adds CONFIG_KSU=y
 ├── docs/
-│   ├── PANDUAN-BUILD.md    # panduan build lengkap (Indonesia)
+│   ├── BUILD.md            # full build guide
 │   ├── FLASHING.md         # backup, flash, rollback
-│   ├── BENCHMARK.md        # cara membandingkan performa
-│   └── TROUBLESHOOTING.md  # error umum
-├── flasher/anykernel.sh    # template AnyKernel3 (kernel-only)
-├── RELEASE_NOTES.md        # template catatan rilis
+│   ├── BENCHMARK.md        # how to compare performance
+│   └── TROUBLESHOOTING.md  # common errors
+├── flasher/anykernel.sh    # AnyKernel3 template (kernel-only)
+├── RELEASE_NOTES.md        # release notes template
 └── scripts/
-    ├── env.sh              # konfigurasi & helper
+    ├── env.sh              # configuration and helper functions
     ├── install-deps.sh
-    ├── setup.sh            # repo sync + overlay fork
+    ├── setup.sh            # repo sync + fork overlay
     ├── build.sh            # build + package
-    ├── package.sh          # artifact + zip AnyKernel3
-    └── freeze.sh           # simpan manifest/revisi terkunci
+    ├── package.sh          # artifacts + AnyKernel3 zip
+    └── freeze.sh           # save the locked manifest/revisions
 ```
 
-## Peringatan
+## Warnings
 
-- Ini bukan proyek GPU overclock. Folder `Flasher-Overclock-1.4GHz` adalah
-  modul `vendor_dlkm` terpisah; jangan dicampur ke zip kernel ini.
-- Build harus berada di filesystem Linux (ext4/btrfs).
-- Kernel kustom selalu punya risiko bootloop. Backup partisi `boot` sebelum
-  flashing.
-- Status saat ini: build Vanilla dan KernelSU Next sudah berhasil di host
-  (termasuk KMI check) dan artifact tersedia di `artifacts/`. Kernel belum
-  diuji; verifikasi `uname -r`, module vendor, WiFi/BT, dan
-  touch setelah flash.
+- This is not a GPU overclock project. The `Flasher-Overclock-1.4GHz` folder is
+  a separate `vendor_dlkm` module; do not merge it into this kernel zip.
+- The build must run on a Linux filesystem (ext4/btrfs).
+- Custom kernels always carry a bootloop risk. Back up the `boot` partition
+  before flashing.
+- Current status: host builds for Vanilla and KernelSU Next succeeded
+  (including the KMI check) and artifacts are available in `artifacts/`. The
+  kernel has not been tested on a physical device yet; verify `uname -r`,
+  vendor modules, WiFi/BT, and touch after flashing.
 
-## Lisensi
+## License
 
-Kernel source mengikuti lisensi GPL-2.0 dari Linux/AOSP. Script dan config
-project ini dilisensikan GPL-2.0-only.
+The kernel source follows the GPL-2.0 license from Linux/AOSP. The scripts and
+configs in this project are licensed under GPL-2.0-only.

@@ -4,8 +4,8 @@
 # =============================================================================
 # Usage:
 #   bash scripts/setup.sh            # check host, repo sync, overlay fork
-#   bash scripts/setup.sh --no-sync  # overlay + prepare only (source sudah ada)
-#   bash scripts/setup.sh --check    # cek host dan status source, tanpa sync
+#   bash scripts/setup.sh --no-sync  # overlay + prepare only (source already exists)
+#   bash scripts/setup.sh --check    # check host and source status, no sync
 # =============================================================================
 
 set -euo pipefail
@@ -17,7 +17,7 @@ case "${1:-}" in
 	--no-sync) MODE="no-sync" ;;
 	--check)   MODE="check" ;;
 	"")        ;;
-	*)         die "Argumen tidak dikenal: $1" ;;
+	*)         die "Unknown argument: $1" ;;
 esac
 
 check_host
@@ -30,10 +30,10 @@ info "Artifacts : $ARTIFACTS_DIR"
 
 if [ "$MODE" = "check" ]; then
 	if [ -d "$AOSP_DIR/.repo" ]; then
-		info "Checkout AOSP ditemukan"
+		info "AOSP checkout found"
 		git -C "$AOSP_DIR/common" log -1 --oneline 2>/dev/null || true
 	else
-		warn "Checkout AOSP belum ada"
+		warn "AOSP checkout is missing"
 	fi
 	exit 0
 fi
@@ -45,10 +45,10 @@ if [ "$MODE" = "sync" ]; then
 		info "repo init (shallow, branch $MANIFEST_BRANCH)"
 		repo init -u "$MANIFEST_URL" -b "$MANIFEST_BRANCH" --depth=1
 	else
-		info "repo sudah diinisialisasi; lanjut sync"
+		info "repo is already initialized; continuing with sync"
 	fi
 
-	info "repo sync (ini mengunduh beberapa GB; sabar)"
+	info "repo sync (this downloads several GB; be patient)"
 	repo sync -c -j"${SYNC_JOBS:-8}" --no-tags --no-clone-bundle --force-sync
 fi
 
@@ -56,17 +56,17 @@ check_tree
 overlay_fork
 prepare_fragments
 
-info "Selesai. Langkah berikutnya:"
+info "Done. Next steps:"
 cat <<EOF
 
   bash scripts/build.sh vanilla thin
   bash scripts/build.sh ksu thin
 
- atau keduanya:
+ or both:
 
   bash scripts/build.sh all thin
 
-Hasil zip ada di:
+Zip outputs are in:
   $ARTIFACTS_DIR/vanilla/
   $ARTIFACTS_DIR/ksu/
 

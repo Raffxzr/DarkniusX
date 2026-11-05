@@ -22,7 +22,7 @@ STAMP="$(date -u '+%Y%m%d-%H%M%S')"
 OUT="$ARTIFACTS_DIR/freeze-$STAMP"
 mkdir -p "$OUT"
 
-info "Menyimpan manifest terkunci"
+info "Saving the locked manifest"
 (
 	cd "$AOSP_DIR"
 	repo manifest -r -o "$OUT/manifest.xml"
@@ -57,5 +57,5 @@ cp -f "$PROJECT_DIR/config/base.config" "$OUT/base.config"
 cp -f "$PROJECT_DIR/config/ksu.config" "$OUT/ksu.config"
 cp -f "$PROJECT_DIR/build/fragment.sh" "$OUT/build-fragment.sh"
 
-info "Freeze selesai: $OUT"
+info "Freeze complete: $OUT"
 cat "$OUT/versions.txt"

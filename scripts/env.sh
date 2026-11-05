@@ -40,7 +40,7 @@ warn()  { printf '\n[WARN] %s\n' "$*" >&2; }
 die()   { printf '\n[ERROR] %s\n' "$*" >&2; exit 1; }
 
 require_cmd() {
-	command -v "$1" >/dev/null 2>&1 || die "perintah '$1' tidak ditemukan. Jalankan scripts/install-deps.sh atau instal paketnya."
+	command -v "$1" >/dev/null 2>&1 || die "command '$1' not found. Run scripts/install-deps.sh or install the package."
 }
 
 check_not_ntfs() {
@@ -48,15 +48,15 @@ check_not_ntfs() {
 	fstype="$(findmnt -no FSTYPE --target "$1" 2>/dev/null || true)"
 	case "$fstype" in
 		ntfs*|fuseblk*|vfat*|exfat*)
-			die "Workspace $1 berada di filesystem $fstype. Pindahkan build ke filesystem Linux (ext4/btrfs), misalnya \$HOME/darkniusx."
+			die "Workspace $1 is on a $fstype filesystem. Move the build to a Linux filesystem (ext4/btrfs), for example \$HOME/darkniusx."
 			;;
 	esac
 }
 
 check_host() {
-	[ "$(uname -s)" = "Linux" ] || die "Build kernel ini hanya didukung di Linux."
+	[ "$(uname -s)" = "Linux" ] || die "Building this kernel is only supported on Linux."
 
-	# Buat workspace lebih awal supaya df/findmnt punya path yang valid.
+	# Create the workspace early so df/findmnt have a valid path.
 	mkdir -p "$DARKNIUSX_HOME" "$ARTIFACTS_DIR"
 
 	local missing=()
@@ -65,7 +65,7 @@ check_host() {
 		command -v "$c" >/dev/null 2>&1 || missing+=("$c")
 	done
 	if [ "${#missing[@]}" -gt 0 ]; then
-		die "Paket host belum lengkap: ${missing[*]}. Jalankan: bash scripts/install-deps.sh"
+		die "Host packages are incomplete: ${missing[*]}. Run: bash scripts/install-deps.sh"
 	fi
 
 	check_not_ntfs "$DARKNIUSX_HOME"
@@ -73,11 +73,11 @@ check_host() {
 	local avail_kb
 	avail_kb="$(df -Pk "$DARKNIUSX_HOME" | awk 'NR==2 {print $4}')"
 	if [ "${avail_kb:-0}" -lt $((80 * 1024 * 1024)) ]; then
-		warn "Sisa disk di $DARKNIUSX_HOME kurang dari 80 GiB. Sync + dua varian build bisa gagal karena disk penuh."
+		warn "Free disk space in $DARKNIUSX_HOME is below 80 GiB. Sync + two variant builds may fail due to a full disk."
 	fi
 
 	if [ "$(nproc)" -lt 4 ]; then
-		warn "CPU hanya $(nproc) core; build akan lambat. Gunakan LTO=thin."
+		warn "CPU has only $(nproc) cores; the build will be slow. Use LTO=thin."
 	fi
 }
 
@@ -86,9 +86,9 @@ ensure_dirs() {
 }
 
 check_tree() {
-	[ -d "$AOSP_DIR/.repo" ] || die "Checkout AOSP belum ada di $AOSP_DIR. Jalankan: bash scripts/setup.sh"
-	[ -x "$AOSP_DIR/build/build.sh" ] || die "build/build.sh tidak ditemukan. Sync repo mungkin belum selesai."
-	[ -d "$AOSP_DIR/common" ] || die "common/ tidak ditemukan. Sync repo mungkin belum selesai."
+	[ -d "$AOSP_DIR/.repo" ] || die "AOSP checkout is missing at $AOSP_DIR. Run: bash scripts/setup.sh"
+	[ -x "$AOSP_DIR/build/build.sh" ] || die "build/build.sh not found. The repo sync may not be complete."
+	[ -d "$AOSP_DIR/common" ] || die "common/ not found. The repo sync may not be complete."
 }
 
 repo_head() {
@@ -109,19 +109,20 @@ overlay_fork() {
 	# branch moves on. Fall back to the branch tip only if the server refuses
 	# to serve an arbitrary SHA.
 	if ! git fetch --depth=1 darkniusx "$FORK_COMMIT"; then
-		warn "Fetch commit langsung gagal; mencoba branch tip ${FORK_BRANCH}"
+		warn "Direct commit fetch failed; trying the branch tip ${FORK_BRANCH}"
 		git fetch --depth=1 darkniusx "$FORK_BRANCH"
 	fi
 
 	local fetched
 	fetched="$(git rev-parse FETCH_HEAD)"
 	if [ "$fetched" != "$FORK_COMMIT" ]; then
-		die "Commit ter-fetch $fetched != $FORK_COMMIT. Jika ingin update pin, ubah FORK_COMMIT di scripts/env.sh secara sengaja."
+		die "Fetched commit $fetched != $FORK_COMMIT. To update the pin, change FORK_COMMIT in scripts/env.sh deliberately."
 	fi
 
-	# -f membuang perubahan tracked dari build sebelumnya (termasuk integrasi
-	# KernelSU di drivers/Makefile dan drivers/Kconfig). Untracked KernelSU-Next
-	# dan symlink-nya tidak dihapus; prepare_ksu akan memperbaikinya.
+	# -f discards tracked changes from the previous build (including the
+	# KernelSU integration in drivers/Makefile and drivers/Kconfig). The
+	# untracked KernelSU-Next tree and its symlink are not removed; prepare_ksu
+	# will fix them up.
 	git checkout -f -B darkniusx-base "$FORK_COMMIT"
 
 	info "Kernel source: $(git log -1 --oneline)"
@@ -132,15 +133,15 @@ ensure_overlay() {
 	local head
 	head="$(repo_head)"
 	if [ "$head" != "$FORK_COMMIT" ]; then
-		warn "common/ masih di $head (bukan fork commit). Overlay otomatis..."
+		warn "common/ is still at $head (not the fork commit). Overlaying automatically..."
 		overlay_fork
 	else
-		info "Kernel source sudah di fork commit ${FORK_COMMIT:0:12}"
+		info "Kernel source is already at fork commit ${FORK_COMMIT:0:12}"
 	fi
 }
 
 prepare_fragments() {
-	info "Menyiapkan config fragment DarkniusX"
+	info "Preparing the DarkniusX config fragments"
 	mkdir -p "$AOSP_DIR/.darkniusx/config" "$AOSP_DIR/.darkniusx/build"
 	cp -f "$PROJECT_DIR/build/fragment.sh" "$AOSP_DIR/.darkniusx/build/fragment.sh"
 	cp -f "$PROJECT_DIR/config/base.config" "$AOSP_DIR/.darkniusx/config/vanilla.config"
@@ -149,12 +150,12 @@ prepare_fragments() {
 }
 
 prepare_ksu() {
-	info "Menyiapkan KernelSU Next ${KSU_VERSION}"
+	info "Preparing KernelSU Next ${KSU_VERSION}"
 	cd "$AOSP_DIR/common"
 
-	# Sisa ekstrak manual / clone yang rusak akan membuat setup.sh gagal.
+	# A leftover manual extract / broken clone would make setup.sh fail.
 	if [ -d KernelSU-Next ] && [ ! -d KernelSU-Next/.git ]; then
-		warn "KernelSU-Next ada tetapi bukan git repo; menghapus dan clone ulang"
+		warn "KernelSU-Next exists but is not a git repo; removing and re-cloning"
 		rm -rf KernelSU-Next
 	fi
 
@@ -171,19 +172,19 @@ prepare_ksu() {
 	fi
 
 	if [ "$need_setup" -eq 1 ]; then
-		[ -d KernelSU-Next ] || info "Clone KernelSU Next (sekali saja; butuh network)"
+		[ -d KernelSU-Next ] || info "Cloning KernelSU Next (once; requires network)"
 		curl -LSs "$KSU_SETUP_URL" | bash -s "$KSU_VERSION"
 	else
-		info "KernelSU Next ${KSU_VERSION} sudah terpasang"
+		info "KernelSU Next ${KSU_VERSION} is already installed"
 	fi
 
-	[ -L drivers/kernelsu ] || die "Symlink drivers/kernelsu tidak ada. Setup KernelSU gagal."
-	grep -q 'kernelsu' drivers/Makefile || die "drivers/Makefile tidak memuat kernelsu. Setup KernelSU gagal."
-	grep -q 'drivers/kernelsu/Kconfig' drivers/Kconfig || die "drivers/Kconfig tidak memuat kernelsu. Setup KernelSU gagal."
+	[ -L drivers/kernelsu ] || die "The drivers/kernelsu symlink is missing. KernelSU setup failed."
+	grep -q 'kernelsu' drivers/Makefile || die "drivers/Makefile does not include kernelsu. KernelSU setup failed."
+	grep -q 'drivers/kernelsu/Kconfig' drivers/Kconfig || die "drivers/Kconfig does not include kernelsu. KernelSU setup failed."
 
 	local tag
 	tag="$(git -C KernelSU-Next describe --tags --exact-match 2>/dev/null || true)"
-	[ "$tag" = "$KSU_VERSION" ] || die "KernelSU Next berada di '$tag', bukan $KSU_VERSION."
+	[ "$tag" = "$KSU_VERSION" ] || die "KernelSU Next is at '$tag', not $KSU_VERSION."
 }
 
 kernel_version() {

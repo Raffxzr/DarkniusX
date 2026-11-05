@@ -1,131 +1,132 @@
-# Benchmark DarkniusX
+# Benchmarking DarkniusX
 
-Tujuan: membandingkan **stock kernel**, **DarkniusX Vanilla**, dan
-**DarkniusX KernelSU Next** secara adil. Hindari kesimpulan dari satu run.
+Goal: compare the **stock kernel**, **DarkniusX Vanilla**, and
+**DarkniusX KernelSU Next** fairly. Never draw conclusions from a single run.
 
-## 1. Kondisi yang harus sama
+## 1. Conditions that must match
 
-- Baterai 70–90%, tidak charging saat benchmark CPU/GPU.
-- Suhu awal sama (diamkan 15–30 menit di suhu ruang).
-- Tidak ada aplikasi berat di latar belakang.
-- Brightness dan refresh rate sama.
-- Mode performa/battery sama (jika ada).
-- Jaringan/WiFi sama untuk benchmark yang butuh network.
-- Reboot sekali setelah flash, lalu diamkan 10 menit.
+- Battery at 70–90%, not charging during CPU/GPU benchmarks.
+- Same starting temperature (rest the device for 15–30 minutes at room
+  temperature).
+- No heavy apps in the background.
+- Same brightness and refresh rate.
+- Same performance/battery mode (if available).
+- Same network/WiFi for network-dependent benchmarks.
+- Reboot once after flashing, then leave the device idle for 10 minutes.
 
-Cek suhu:
+Check the temperature:
 
 ```bash
 adb shell dumpsys thermalservice
 adb shell 'cat /sys/class/thermal/thermal_zone*/temp'
 ```
 
-## 2. Benchmark yang disarankan
+## 2. Recommended benchmarks
 
 ### 2.1 CPU
 
-- **Geekbench 6**: single-core dan multi-core.
-- Jalankan 3x, ambil median.
-- Catat suhu awal/akhir.
+- **Geekbench 6**: single-core and multi-core.
+- Run 3 times and take the median.
+- Record the starting and ending temperature.
 
-### 2.2 GPU / termal
+### 2.2 GPU / thermal
 
-- **3DMark Wild Life** (atau Wild Life Extreme jika didukung).
-- Fokus pada **stability** dan **temperature**, bukan hanya skor.
-- Jalankan 3x berturut-turut untuk melihat throttling.
+- **3DMark Wild Life** (or Wild Life Extreme if supported).
+- Focus on **stability** and **temperature**, not just the score.
+- Run 3 times in a row to observe throttling.
 
-### 2.3 Storage (opsional)
+### 2.3 Storage (optional)
 
-- AndroBench / `fio` jika tersedia.
-- Kernel biasanya tidak mengubah storage secara signifikan; jangan jadi
-  patokan utama.
+- AndroBench / `fio` if available.
+- The kernel usually does not change storage performance significantly; do not
+  use it as the main metric.
 
-### 2.4 Baterai
+### 2.4 Battery
 
 - Reset stats:
   ```bash
   adb shell dumpsys batterystats --reset
   ```
-- Diamkan 8 jam (screen off, WiFi/mobile standby).
-- Bandingkan `dumpsys batterystats` dan `dumpsys power`.
+- Leave the device idle for 8 hours (screen off, WiFi/mobile standby).
+- Compare `dumpsys batterystats` and `dumpsys power`.
 
-## 3. Metrik kernel
+## 3. Kernel metrics
 
 ```bash
-# frekuensi CPU saat idle / load
+# CPU frequency at idle / load
 adb shell 'cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq'
 
 # governor
 adb shell 'cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor'
 
-# beban
+# load
 adb shell cat /proc/loadavg
 
-# memori
+# memory
 adb shell free -h
 
-# modul vendor
+# vendor modules
 adb shell cat /proc/modules
 
-# error kernel
+# kernel errors
 adb shell dmesg | grep -iE 'panic|oops|watchdog|kasan|ubsan|kfence|version magic'
 ```
 
-## 4. Stabilitas
+## 4. Stability
 
-Lakukan minimal:
+At minimum, run:
 
-- 30 menit game / video.
-- 1 jam hotspot / WiFi.
-- 8 jam idle.
-- Reboot 3x.
-- Buka kamera, Bluetooth, GPS, NFC (jika ada).
+- 30 minutes of gaming / video.
+- 1 hour of hotspot / WiFi.
+- 8 hours idle.
+- 3 reboots.
+- Open the camera, Bluetooth, GPS, and NFC (if available).
 
-Tidak boleh ada:
+None of the following may occur:
 
-- reboot spontan,
+- spontaneous reboots,
 - `kernel panic` / `Oops`,
-- layar mati permanen,
-- WiFi/BT mati setelah sleep,
-- touch tidak responsif setelah wake.
+- a permanently black screen,
+- WiFi/BT failing after sleep,
+- an unresponsive touchscreen after wake.
 
-## 5. Format pencatatan
+## 5. Recording format
 
-Simpan hasil di spreadsheet / markdown:
+Store the results in a spreadsheet or Markdown table:
 
-| Skenario | Stock | Vanilla | KSU |
+| Scenario | Stock | Vanilla | KSU |
 |---|---|---|---|
 | Geekbench 6 single | | | |
 | Geekbench 6 multi | | | |
 | 3DMark Wild Life | | | |
-| Suhu max (game 30m) | | | |
-| Baterai idle 8h | | | |
+| Max temperature (30m game) | | | |
+| 8h idle battery | | | |
 | Boot time | | | |
 
-Sertakan:
+Include:
 
-- versi kernel (`uname -r`),
-- tanggal,
-- suhu ruang,
-- versi aplikasi benchmark,
-- catatan throttling.
+- kernel version (`uname -r`),
+- date,
+- room temperature,
+- benchmark app version,
+- throttling notes.
 
-## 6. Ekspektasi realistis
+## 6. Realistic expectations
 
-- Menghapus `UBSAN`/`KFENCE` bisa mengurangi overhead dan ukuran image,
-  tetapi `KASAN` (HW_TAGS), `PAGE_OWNER`, dan `DEBUG_LIST` sengaja tetap
-  aktif demi kompatibilitas KMI GKI. Pada perangkat tanpa MTE, KASAN HW_TAGS
-  tidak menginstrumentasi semua akses memori, jadi selisih performanya tidak
-  selalu besar.
-- Perbedaan paling terasa pada ukuran image, waktu build, dan beban memori —
-  bukan selalu pada skor benchmark.
-- KernelSU menambah sedikit kode di jalur syscall, tetapi overhead harian
-  biasanya kecil. Jika terasa besar, cek `CONFIG_KSU_DEBUG` (harus off).
-- Throttling termal sering lebih menentukan skor daripada tweak kernel.
+- Removing `UBSAN`/`KFENCE` can reduce overhead and image size, but `KASAN`
+  (HW_TAGS), `PAGE_OWNER`, and `DEBUG_LIST` intentionally stay enabled for GKI
+  KMI compatibility. On devices without MTE, KASAN HW_TAGS does not instrument
+  every memory access, so the performance difference is not always large.
+- The biggest differences are usually in image size, build time, and memory
+  usage — not necessarily in benchmark scores.
+- KernelSU adds a small amount of code to the syscall path, but daily overhead
+  is usually small. If it feels significant, check `CONFIG_KSU_DEBUG` (it must
+  be off).
+- Thermal throttling often affects scores more than kernel tweaks.
 
-## 7. Yang tidak boleh dilakukan
+## 7. What not to do
 
-- Membandingkan skor dari suhu/baterai berbeda.
-- Menjalankan benchmark saat charging.
-- Mengambil satu run terbaik dan menyebutnya "hasil".
-- Menyimpulkan performa dari AnTuTu saja.
+- Compare scores taken at different temperatures or battery levels.
+- Run benchmarks while charging.
+- Pick the single best run and call it "the result".
+- Draw performance conclusions from AnTuTu alone.

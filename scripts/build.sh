@@ -8,8 +8,8 @@
 #   bash scripts/build.sh all     [thin|full]
 #
 # Environment:
-#   CPUSET=0-5        pakai 6 core (default 0-3 = 4 core, aman untuk 15 GiB RAM)
-#   SKIP_MRPROPER=1   incremental build (tidak menghapus out dir)
+#   CPUSET=0-5        use 6 cores (default 0-3 = 4 cores, safe for 15 GiB RAM)
+#   SKIP_MRPROPER=1   incremental build (do not delete the out dir)
 #   LTO=thin|full     default thin
 # =============================================================================
 
@@ -27,7 +27,7 @@ esac
 
 case "$LTO" in
 	thin|full|none) ;;
-	*) die "LTO harus thin, full, atau none" ;;
+	*) die "LTO must be thin, full, or none" ;;
 esac
 
 check_host
@@ -50,7 +50,7 @@ run_build() {
 		local avail_gb
 		avail_gb="$(free -g | awk '/^Mem:/ {print $7}')"
 		if [ "${avail_gb:-0}" -lt 12 ]; then
-			warn "LTO=full dengan RAM tersedia ${avail_gb} GiB bisa OOM. Pertimbangkan LTO=thin atau CPUSET=0-1."
+			warn "LTO=full with ${avail_gb} GiB available RAM may OOM. Consider LTO=thin or CPUSET=0-1."
 		fi
 	fi
 
@@ -61,8 +61,8 @@ run_build() {
 	info "Log: $log"
 
 	cd "$AOSP_DIR"
-	# Catatan: build.sh menimpa MAKEFLAGS dengan -j$(nproc). taskset membatasi
-	# jumlah CPU yang terlihat oleh nproc, sehingga jumlah job ikut turun.
+	# Note: build.sh overrides MAKEFLAGS with -j$(nproc). taskset limits the
+	# number of CPUs visible to nproc, so the job count is reduced as well.
 	(
 		export BUILD_CONFIG="common/build.config.gki.aarch64"
 		export BUILD_CONFIG_FRAGMENTS=".darkniusx/build/fragment.sh"
@@ -74,10 +74,10 @@ run_build() {
 		taskset -c "$cpuset" ./build/build.sh
 	) 2>&1 | tee "$log"
 
-	[ -f "$dist_dir/Image" ] || die "Build selesai tanpa dist/Image. Cek log: $log"
-	[ -f "$dist_dir/Image.lz4" ] || die "Build selesai tanpa dist/Image.lz4. Cek log: $log"
+	[ -f "$dist_dir/Image" ] || die "Build finished without dist/Image. Check the log: $log"
+	[ -f "$dist_dir/Image.lz4" ] || die "Build finished without dist/Image.lz4. Check the log: $log"
 
-	info "Build $variant selesai"
+	info "Build $variant complete"
 	bash "$PROJECT_DIR/scripts/package.sh" "$variant"
 }
 
@@ -88,4 +88,4 @@ else
 	run_build "$TARGET"
 fi
 
-info "Semua build selesai."
+info "All builds complete."

@@ -1,20 +1,20 @@
-# Flashing dan Rollback
+# Flashing and Rollback
 
-Panduan ini generik untuk perangkat GKI `android12-5.10`. Perintah partisi bisa
-berbeda tergantung codename dan layout A/B. **Selalu cek nama partisi di
-perangkat sebelum menjalankan `dd`.**
+This guide is generic for GKI `android12-5.10` devices. Partition commands can
+differ depending on the codename and A/B layout. **Always verify partition
+names on the device before running `dd`.**
 
-## 1. Sebelum mulai
+## 1. Before you start
 
-Yang harus tersedia:
+Make sure you have:
 
-- Bootloader sudah unlock (atau custom recovery terpasang).
-- `adb` dan `fastboot` di komputer.
-- Backup `boot`, `vendor_boot`, `vendor_dlkm`, dan `dtbo` (jika ada).
-- Zip kernel DarkniusX.
-- Kernel stock / boot image cadangan untuk rollback.
+- An unlocked bootloader (or a custom recovery installed).
+- `adb` and `fastboot` on your computer.
+- Backups of `boot`, `vendor_boot`, `vendor_dlkm`, and `dtbo` (if present).
+- The DarkniusX kernel zip.
+- The stock kernel / a backup boot image for rollback.
 
-Cek koneksi:
+Check the connection:
 
 ```bash
 adb devices
@@ -23,15 +23,15 @@ adb shell getprop ro.boot.slot_suffix
 adb shell uname -r
 ```
 
-`uname -r` harus mengandung `-android12-9-`.
+`uname -r` must contain `-android12-9-`.
 
-## 2. Cek partisi
+## 2. Check partitions
 
 ```bash
 adb shell 'ls -l /dev/block/by-name/ | grep -E "boot|vendor_boot|vendor_dlkm|dtbo"'
 ```
 
-Contoh perangkat A/B:
+Example A/B device:
 
 ```text
 boot_a -> /dev/block/sde12
@@ -42,12 +42,12 @@ vendor_dlkm_a -> /dev/block/sde16
 vendor_dlkm_b -> /dev/block/sde17
 ```
 
-`/dev/block/by-name/boot` biasanya symlink ke slot aktif. Jangan menebak; cek
-`readlink -f`.
+`/dev/block/by-name/boot` is usually a symlink to the active slot. Do not
+guess; check with `readlink -f`.
 
 ## 3. Backup
 
-### 3.1 Dengan root (paling mudah)
+### 3.1 With root (easiest)
 
 ```bash
 adb shell su -c 'dd if=/dev/block/by-name/boot of=/sdcard/boot-stock.img'
@@ -58,58 +58,58 @@ adb pull /sdcard/vendor_boot-stock.img
 adb pull /sdcard/vendor_dlkm-stock.img
 ```
 
-Jika root belum ada, gunakan custom recovery (TWRP/OrangeFox) → Backup →
-pilih `Boot`, `Vendor Boot`, `Vendor DLKM`.
+If you do not have root yet, use a custom recovery (TWRP/OrangeFox) → Backup →
+select `Boot`, `Vendor Boot`, and `Vendor DLKM`.
 
-### 3.2 Verifikasi backup
+### 3.2 Verify the backup
 
 ```bash
 ls -lh boot-stock.img vendor_boot-stock.img vendor_dlkm-stock.img
 file boot-stock.img
 ```
 
-Ukuran `boot-stock.img` biasanya 32–128 MB. Simpan juga salinan di komputer
-lain / cloud.
+A `boot-stock.img` is usually 32–128 MB. Keep a copy on another computer or in
+the cloud as well.
 
-## 4. Flash kernel
+## 4. Flash the kernel
 
-### 4.1 Custom recovery (disarankan untuk zip AnyKernel3)
+### 4.1 Custom recovery (recommended for AnyKernel3 zips)
 
 ```bash
 adb reboot recovery
 ```
 
-Di recovery:
+In recovery:
 
-- TWRP/OrangeFox: **Install** → pilih zip.
-- Atau **Advanced → ADB Sideload**, lalu:
+- TWRP/OrangeFox: **Install** → select the zip.
+- Or **Advanced → ADB Sideload**, then:
 
 ```bash
 adb sideload DarkniusX-vanilla-5.10.272-YYYYMMDD.zip
 ```
 
-Jangan wipe data. Zip hanya mengganti kernel di `boot`. Zip juga punya
-pengaman: jika kernel yang sedang ada di `boot` bukan `-android12-9-`, proses
-flash akan dibatalkan otomatis.
+Do not wipe data. The zip only replaces the kernel in `boot`. It also includes
+a guard: if the kernel currently in `boot` is not `-android12-9-` (or a
+previous DarkniusX build), flashing is aborted automatically.
 
-### 4.2 Fastboot (jika punya boot.img)
+### 4.2 Fastboot (if you have a boot.img)
 
-Zip AnyKernel3 bukan `boot.img`. Jika ingin flash lewat fastboot, ekstrak
-`Image` dari zip dan buat boot image dengan tool yang sesuai, atau gunakan
-`fastboot boot` pada boot image yang sudah dibuat. Cara ini lebih berisiko
-karena harus mempertahankan header/ramdisk stock.
+The AnyKernel3 zip is not a `boot.img`. To flash via fastboot, extract `Image`
+from the zip and build a boot image with the appropriate tool, or use
+`fastboot boot` on an already-built boot image. This path is riskier because
+you must preserve the stock header and ramdisk.
 
-Untuk perangkat dengan `init_boot` (Android 13+), kernel tetap berada di
-`boot`; jangan flash `init_boot`.
+For devices with `init_boot` (Android 13+), the kernel still lives in `boot`;
+do not flash `init_boot`.
 
 ## 5. First boot
 
-- 5–10 menit normal.
-- Layar mungkin hitam / logo diam beberapa menit.
-- Jangan langsung panik dan reboot paksa sebelum 15 menit.
-- Jika reboot berulang (bootloop) lebih dari 15 menit, restore.
+- 5–10 minutes is normal.
+- The screen may stay black or the logo may sit still for several minutes.
+- Do not panic and force-reboot before 15 minutes.
+- If it keeps rebooting (bootloop) for more than 15 minutes, restore the backup.
 
-## 6. Verifikasi setelah boot
+## 6. Verify after boot
 
 ```bash
 adb shell uname -r
@@ -118,23 +118,23 @@ adb shell dmesg | grep -iE 'version magic|module verification failed|failed to l
 adb shell getprop ro.boot.verifiedbootstate
 ```
 
-Cek manual:
+Check manually:
 
-- WiFi: nyalakan, cari jaringan.
-- Bluetooth: nyalakan, pairing.
-- Touch: seluruh area layar.
-- Kamera depan/belakang.
-- Audio speaker, mic, headset.
-- Sensor: auto-rotate, proximity saat telepon.
+- WiFi: turn it on and scan for networks.
+- Bluetooth: turn it on and pair a device.
+- Touch: test the entire screen area.
+- Front and rear cameras.
+- Speaker, microphone, and headset audio.
+- Sensors: auto-rotate and proximity during a call.
 - Charging.
 
-Untuk KSU:
+For KSU:
 
 ```bash
 adb shell su -v
 ```
 
-Atau buka **KernelSU-Next Manager v3.4.2**.
+Or open **KernelSU-Next Manager v3.4.2**.
 
 ## 7. Rollback
 
@@ -150,56 +150,58 @@ A/B:
 
 ```bash
 fastboot flash boot_a boot-stock.img
-# sesuaikan slot
+# adjust the slot as needed
 ```
 
 ### 7.2 Recovery
 
-Jika perangkat masih bisa masuk recovery:
+If the device can still boot into recovery:
 
 ```bash
 adb shell su -c 'dd if=/sdcard/boot-stock.img of=/dev/block/by-name/boot'
 ```
 
-Atau restore backup TWRP.
+Or restore the TWRP backup.
 
-### 7.3 Tidak bisa masuk recovery/fastboot
+### 7.3 Cannot enter recovery or fastboot
 
-Ini keadaan darurat. Cari firmware stock (scatter file MediaTek / fastboot
-ROM) untuk codename perangkat dan flash ulang. Karena itu, backup dan
-pengetahuan tentang tool flashing stock wajib sebelum mencoba.
+This is an emergency. Find the stock firmware (MediaTek scatter file / fastboot
+ROM) for the device codename and flash it again. That is why backups and
+knowledge of the stock flashing tool are mandatory before trying a custom
+kernel.
 
 ## 8. AVB / vbmeta
 
-AnyKernel3 memakai `PATCH_VBMETA_FLAG=auto`, yang biasanya cukup untuk
-mempertahankan boot. Jika muncul error verifikasi:
+AnyKernel3 uses `PATCH_VBMETA_FLAG=auto`, which is usually enough to keep the
+device booting. If a verification error appears:
 
 ```bash
 fastboot --disable-verity --disable-verification flash vbmeta vbmeta-stock.img
 ```
 
-Jangan flash `vbmeta` kosong tanpa memahami konsekuensinya. Beberapa perangkat
-MediaTek membutuhkan `vbmeta` yang cocok dengan firmware.
+Do not flash an empty `vbmeta` without understanding the consequences. Some
+MediaTek devices require a `vbmeta` image that matches the firmware.
 
-## 9. Jangan dicampur dengan flasher GPU
+## 9. Do not mix with the GPU flasher
 
-Folder `Flasher-Overclock-1.4GHz` memodifikasi `vendor_dlkm`
-(`mtk_gpufreq_mt6789.ko`). Itu modul terpisah dari kernel DarkniusX.
+The `Flasher-Overclock-1.4GHz` folder modifies `vendor_dlkm`
+(`mtk_gpufreq_mt6789.ko`). That module is separate from the DarkniusX kernel.
 
-Urutan yang disarankan:
+Recommended order:
 
-1. Flash kernel DarkniusX.
-2. Boot dan verifikasi.
-3. Baru flash GPU overclock (jika mau), dengan backup `vendor_dlkm`.
+1. Flash the DarkniusX kernel.
+2. Boot and verify.
+3. Only then flash the GPU overclock (if desired), with a `vendor_dlkm`
+   backup.
 
-Jangan flash keduanya sekaligus; jika terjadi bootloop, sulit menentukan
-penyebabnya.
+Do not flash both at once; if a bootloop occurs, it becomes difficult to
+determine the cause.
 
-## 10. Checklist rollback
+## 10. Rollback checklist
 
-- [ ] `boot-stock.img` ada dan ukurannya wajar
-- [ ] `vendor_boot-stock.img` ada (jika perangkat punya)
-- [ ] `vendor_dlkm-stock.img` ada (jika memakai GPU mod)
-- [ ] Tahu cara masuk fastboot/recovery
-- [ ] Tahu codename dan firmware stock
-- [ ] Sudah baca bagian KMI di `PANDUAN-BUILD.md`
+- [ ] `boot-stock.img` exists and has a reasonable size
+- [ ] `vendor_boot-stock.img` exists (if the device has the partition)
+- [ ] `vendor_dlkm-stock.img` exists (if using the GPU mod)
+- [ ] You know how to enter fastboot/recovery
+- [ ] You know the codename and stock firmware
+- [ ] You have read the KMI section in `BUILD.md`

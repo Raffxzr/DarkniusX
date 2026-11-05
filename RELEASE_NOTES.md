@@ -1,47 +1,48 @@
 # DarkniusX v1.0.0 (Linux 5.10.272)
 
-> **Status: pre-release.** Build host untuk kedua varian berhasil dan lolos
-> KMI check, tetapi kernel **belum diuji di perangkat fisik**. Jangan flashing
-> tanpa backup `boot` dan pahami risiko bootloop.
+> **Status: pre-release.** Host builds for both variants succeeded and passed
+> the KMI check, but the kernel has **not been tested on a physical device**.
+> Do not flash without a `boot` backup, and understand the bootloop risk.
 
-Kernel GKI `android12-5.10` (KMI generation **9**) yang bersifat **universal**:
-bisa dipakai di perangkat apa pun dengan KMI 9, tanpa terikat codename.
-Tersedia dua varian: **Vanilla** dan **KernelSU Next**.
+DarkniusX is a GKI `android12-5.10` (KMI generation **9**) kernel that is
+**universal**: it works on any device with KMI 9 and is not tied to a codename.
+Two variants are available: **Vanilla** and **KernelSU Next**.
 
-## Isi rilis
+## Release contents
 
-- Base: AOSP `common-android12-5.10` + fork `lifeats666ln/kernel_common-5.10`
+- Base: AOSP `common-android12-5.10` + `lifeats666ln/kernel_common-5.10` fork
 - Source commit: `f04d8c2a2f78a836d81d7ab0c1ab675f4ddddc9f`
 - Linux: `5.10.272`
 - `uname -r`: `5.10.272-DarkniusX`
 - Toolchain: AOSP Clang `r416183b`
-- LTO: ThinLTO (kecuali disebut lain)
-- KernelSU Next: `v3.4.2` (varian KSU, built-in `CONFIG_KSU=y`)
+- LTO: ThinLTO (unless stated otherwise)
+- KernelSU Next: `v3.4.2` (KSU variant, built-in `CONFIG_KSU=y`)
 
-## File
+## Files
 
-| File | Varian | Keterangan |
+| File | Variant | Notes |
 |---|---|---|
-| `DarkniusX-vanilla-5.10.272-20261105.zip` | Vanilla | Tanpa root |
+| `DarkniusX-vanilla-5.10.272-20261105.zip` | Vanilla | No root |
 | `DarkniusX-ksu-5.10.272-20261105.zip` | KernelSU Next | Root via KernelSU-Next Manager |
-| `SHA256SUMS` | Keduanya | Checksum |
-| `BUILD_INFO-vanilla.txt`, `BUILD_INFO-ksu.txt` | Keduanya | Detail build |
-| `config-vanilla`, `config-ksu` | Keduanya | Config final |
-| `manifest.xml` | — | Manifest repo terkunci |
+| `SHA256SUMS` | Both | Checksums |
+| `BUILD_INFO-vanilla.txt`, `BUILD_INFO-ksu.txt` | Both | Build details |
+| `config-vanilla`, `config-ksu` | Both | Final kernel config |
+| `manifest.xml` | — | Locked repo manifest |
 
-## Kompatibilitas
+## Compatibility
 
-- **Universal** untuk semua perangkat dengan GKI `android12-5.10` (KMI 9);
-  tidak ada device/codename check (`do.devicecheck=0`).
-- Wajib: `uname -r` stock mengandung `-android12-9-` (atau kernel DarkniusX
-  sebelumnya) **dan** kernel berada di partisi `boot`.
-- **Tidak kompatibel** dengan `-android13-11-`, KMI lain, atau perangkat yang
-  kernel-nya hanya ada di `vendor_boot`.
-- Zip AnyKernel3 hanya mengganti kernel di partisi `boot`; tidak menyentuh
-  `vendor_boot`, `vendor_dlkm`, `dtbo`, atau modul GPU overclock.
-- Installer membatalkan flash otomatis jika guard KMI tidak terpenuhi.
+- **Universal** for every device running GKI `android12-5.10` (KMI 9); there is
+  no device/codename check (`do.devicecheck=0`).
+- Required: the stock `uname -r` contains `-android12-9-` (or the installed
+  kernel is a previous DarkniusX build) **and** the kernel lives in the `boot`
+  partition.
+- **Not compatible** with `-android13-11-`, other KMIs, or devices whose kernel
+  only exists in `vendor_boot`.
+- The AnyKernel3 zip only replaces the kernel in the `boot` partition; it does
+  not touch `vendor_boot`, `vendor_dlkm`, `dtbo`, or the GPU overclock module.
+- The installer aborts automatically if the KMI guard is not satisfied.
 
-Cek perangkat sebelum flashing:
+Check the device before flashing:
 
 ```bash
 adb shell uname -r
@@ -49,25 +50,25 @@ adb shell getprop ro.product.device
 adb shell getprop ro.board.platform
 ```
 
-## Cara flash
+## How to flash
 
-Lihat [`docs/FLASHING.md`](docs/FLASHING.md). Ringkasnya:
+See [`docs/FLASHING.md`](docs/FLASHING.md). In short:
 
-1. Backup `boot` (dan `vendor_boot`/`vendor_dlkm` jika ada).
-2. Flash zip lewat custom recovery (TWRP/OrangeFox) atau sideload.
-3. Boot, lalu verifikasi `uname -r`, WiFi/BT, touch, kamera, dan audio.
+1. Back up `boot` (and `vendor_boot`/`vendor_dlkm` if present).
+2. Flash the zip from a custom recovery (TWRP/OrangeFox) or via sideload.
+3. Boot and verify `uname -r`, WiFi/BT, touch, camera, and audio.
 
 ## Known issues
 
-- Belum diuji pada perangkat fisik pada rilis pertama; lihat catatan status di
-  README.
-- `KASAN`/`KASAN_HW_TAGS`, `PAGE_OWNER`, `DEBUG_LIST`, `SCHEDSTATS`, dan
-  `SCHED_DEBUG` tetap aktif demi kompatibilitas KMI GKI.
-- Full LTO tidak disarankan untuk mesin dengan RAM < 32 GiB.
+- Not yet tested on a physical device in the first release; see the status note
+  in the README.
+- `KASAN`/`KASAN_HW_TAGS`, `PAGE_OWNER`, `DEBUG_LIST`, `SCHEDSTATS`, and
+  `SCHED_DEBUG` remain enabled for GKI KMI compatibility.
+- Full LTO is not recommended on machines with less than 32 GiB RAM.
 
 ## Rollback
 
-Restore `boot-stock.img` lewat fastboot atau recovery:
+Restore `boot-stock.img` via fastboot or recovery:
 
 ```bash
 fastboot flash boot boot-stock.img
@@ -76,4 +77,4 @@ fastboot reboot
 
 ## Checksum
 
-Lihat file `SHA256SUMS` pada halaman rilis ini.
+See the `SHA256SUMS` file on this release page.
