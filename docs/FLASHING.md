@@ -88,7 +88,9 @@ Di recovery:
 adb sideload DarkniusX-vanilla-5.10.272-YYYYMMDD.zip
 ```
 
-Jangan wipe data. Zip hanya mengganti kernel di `boot`.
+Jangan wipe data. Zip hanya mengganti kernel di `boot`. Zip juga punya
+pengaman: jika kernel yang sedang ada di `boot` bukan `-android12-9-`, proses
+flash akan dibatalkan otomatis.
 
 ### 4.2 Fastboot (jika punya boot.img)
 

@@ -92,6 +92,7 @@ DarkniusX/
 │   ├── BENCHMARK.md        # cara membandingkan performa
 │   └── TROUBLESHOOTING.md  # error umum
 ├── flasher/anykernel.sh    # template AnyKernel3 (kernel-only)
+├── RELEASE_NOTES.md        # template catatan rilis
 └── scripts/
     ├── env.sh              # konfigurasi & helper
     ├── install-deps.sh
@@ -109,8 +110,10 @@ DarkniusX/
   `/mnt/sdb2` yang NTFS.
 - Kernel kustom selalu punya risiko bootloop. Backup partisi `boot` sebelum
   flashing.
-- Status saat ini: scaffold build dan konfigurasi. Belum diuji di perangkat
-  fisik; verifikasi `uname -r`, module vendor, WiFi/BT, dan touch setelah flash.
+- Status saat ini: build Vanilla dan KernelSU Next sudah berhasil di host
+  (termasuk KMI check) dan artifact tersedia di `artifacts/`. Kernel belum
+  diuji di perangkat fisik; verifikasi `uname -r`, module vendor, WiFi/BT, dan
+  touch setelah flash.
 
 ## Lisensi
 

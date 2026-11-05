@@ -31,4 +31,17 @@ PATCH_VBMETA_FLAG=auto;
 # split_boot: unpack boot but keep the existing ramdisk bytes untouched.
 # flash_boot: repack and write the new boot image.
 split_boot;
+
+# Safety guard: this kernel is only for GKI android12-5.10 (KMI generation 9).
+# Refuse to overwrite a boot image whose current kernel reports another KMI.
+if [ -f "$SPLITIMG/kernel" ]; then
+	if ! strings "$SPLITIMG/kernel" | grep -q -- '-android12-9-'; then
+		ui_print " ";
+		ui_print "*** DarkniusX: incompatible kernel detected ***";
+		ui_print "This package requires android12-5.10 (KMI 9).";
+		ui_print "Your current boot kernel is not -android12-9-.";
+		abort "Installation aborted to protect your device.";
+	fi;
+fi;
+
 flash_boot;

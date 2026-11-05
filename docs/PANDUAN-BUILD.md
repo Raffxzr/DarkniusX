@@ -4,9 +4,9 @@ Panduan ini menjelaskan cara membangun kernel **DarkniusX** untuk Android 12 /
 GKI Linux 5.10 dari nol di CachyOS (Arch-based), termasuk varian **Vanilla**
 dan **KernelSU Next**.
 
-> **Status:** scaffold build sudah lengkap, tetapi kernel belum diuji di
-> perangkat fisik. Jangan flashing sebelum membaca bagian kompatibilitas dan
-> backup.
+> **Status:** build host untuk kedua varian (Vanilla dan KernelSU Next) sudah
+> berhasil, termasuk KMI check. Kernel belum diuji di perangkat fisik. Jangan
+> flashing sebelum membaca bagian kompatibilitas dan backup.
 
 ---
 
