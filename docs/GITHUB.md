@@ -20,10 +20,12 @@ gh repo create DarkniusX --public --source=. --remote=origin --push
 Atau:
 
 ```bash
-git remote add origin https://github.com/<user>/DarkniusX.git
+git remote add origin https://github.com/Rafaarsya/DarkniusX.git
 git branch -M main
 git push -u origin main
 ```
+
+Repo publik: <https://github.com/Rafaarsya/DarkniusX>.
 
 ## 2. Yang tidak boleh di-commit
 
@@ -43,20 +45,26 @@ Nama file yang disarankan:
 ```text
 DarkniusX-vanilla-5.10.272-20261105.zip
 DarkniusX-ksu-5.10.272-20261105.zip
-DarkniusX-vanilla-5.10.272-20261105-SHA256SUMS
+SHA256SUMS
+BUILD_INFO-vanilla.txt
+BUILD_INFO-ksu.txt
 ```
 
-Buat release:
+Buat release (tandai `--prerelease` selama belum diuji di perangkat):
 
 ```bash
 gh release create v1.0.0 \
   "$HOME/darkniusx/artifacts/vanilla/DarkniusX-vanilla-5.10.272-20261105.zip" \
-  "$HOME/darkniusx/artifacts/vanilla/SHA256SUMS" \
   "$HOME/darkniusx/artifacts/ksu/DarkniusX-ksu-5.10.272-20261105.zip" \
-  "$HOME/darkniusx/artifacts/ksu/SHA256SUMS" \
+  "$HOME/darkniusx/artifacts/vanilla/BUILD_INFO.txt#BUILD_INFO-vanilla.txt" \
+  "$HOME/darkniusx/artifacts/ksu/BUILD_INFO.txt#BUILD_INFO-ksu.txt" \
   --title "DarkniusX v1.0.0 (Linux 5.10.272)" \
-  --notes-file RELEASE_NOTES.md
+  --notes-file RELEASE_NOTES.md \
+  --prerelease
 ```
+
+`SHA256SUMS`, config, ABI, dan manifest dapat ditambahkan sebagai asset
+tambahan setelah release dibuat.
 
 Isi release notes minimal:
 

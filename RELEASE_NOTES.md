@@ -1,4 +1,8 @@
-# DarkniusX vX.Y.Z (Linux 5.10.272)
+# DarkniusX v1.0.0 (Linux 5.10.272)
+
+> **Status: pre-release.** Build host untuk kedua varian berhasil dan lolos
+> KMI check, tetapi kernel **belum diuji di perangkat fisik**. Jangan flashing
+> tanpa backup `boot` dan pahami risiko bootloop.
 
 Kernel GKI `android12-5.10` (KMI generation **9**) yang bersifat **universal**:
 bisa dipakai di perangkat apa pun dengan KMI 9, tanpa terikat codename.
