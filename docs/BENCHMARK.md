@@ -112,14 +112,16 @@ Sertakan:
 
 ## 6. Ekspektasi realistis
 
-- Menghapus KASAN/UBSAN/KFENCE bisa mengurangi overhead, tetapi pada kernel
-  production yang sudah tidak memakai KASAN aktif, selisihnya tidak selalu
-  besar.
+- Menghapus `UBSAN`/`KFENCE` bisa mengurangi overhead dan ukuran image,
+  tetapi `KASAN` (HW_TAGS), `PAGE_OWNER`, dan `DEBUG_LIST` sengaja tetap
+  aktif demi kompatibilitas KMI GKI. Pada perangkat tanpa MTE, KASAN HW_TAGS
+  tidak menginstrumentasi semua akses memori, jadi selisih performanya tidak
+  selalu besar.
 - Perbedaan paling terasa pada ukuran image, waktu build, dan beban memori —
   bukan selalu pada skor benchmark.
 - KernelSU menambah sedikit kode di jalur syscall, tetapi overhead harian
   biasanya kecil. Jika terasa besar, cek `CONFIG_KSU_DEBUG` (harus off).
-- Throttling termal often lebih menentukan skor daripada tweak kernel.
+- Throttling termal sering lebih menentukan skor daripada tweak kernel.
 
 ## 7. Yang tidak boleh dilakukan
 
