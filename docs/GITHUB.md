@@ -20,12 +20,12 @@ gh repo create DarkniusX --public --source=. --remote=origin --push
 Atau:
 
 ```bash
-git remote add origin https://github.com/Rafaarsya/DarkniusX.git
+git remote add origin https://github.com/Raffxzr/DarkniusX.git
 git branch -M main
 git push -u origin main
 ```
 
-Repo publik: <https://github.com/Rafaarsya/DarkniusX>.
+Repo publik: <https://github.com/Raffxzr/DarkniusX>.
 
 ## 2. Yang tidak boleh di-commit
 
