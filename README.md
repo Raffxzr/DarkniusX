@@ -97,14 +97,12 @@ DarkniusX/
 
 ## Warnings
 
-- This is not a GPU overclock project. The `Flasher-Overclock-1.4GHz` folder is
-  a separate `vendor_dlkm` module; do not merge it into this kernel zip.
 - The build must run on a Linux filesystem (ext4/btrfs).
 - Custom kernels always carry a bootloop risk. Back up the `boot` partition
   before flashing.
 - Current status: host builds for Vanilla and KernelSU Next succeeded
   (including the KMI check) and artifacts are available in `artifacts/`. The
-  kernel has not been tested on a physical device yet; verify `uname -r`,
+  kernel has not been tested on a device yet; verify `uname -r`,
   vendor modules, WiFi/BT, and touch after flashing.
 
 ## License
