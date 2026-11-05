@@ -1,7 +1,8 @@
 # DarkniusX vX.Y.Z (Linux 5.10.272)
 
-Kernel GKI `android12-5.10` (KMI generation **9**) untuk perangkat yang
-kompatibel. Tersedia dua varian: **Vanilla** dan **KernelSU Next**.
+Kernel GKI `android12-5.10` (KMI generation **9**) yang bersifat **universal**:
+bisa dipakai di perangkat apa pun dengan KMI 9, tanpa terikat codename.
+Tersedia dua varian: **Vanilla** dan **KernelSU Next**.
 
 ## Isi rilis
 
@@ -23,10 +24,15 @@ kompatibel. Tersedia dua varian: **Vanilla** dan **KernelSU Next**.
 
 ## Kompatibilitas
 
-- Wajib: `uname -r` stock mengandung `-android12-9-`.
-- **Tidak kompatibel** dengan `-android13-11-` atau KMI lain.
+- **Universal** untuk semua perangkat dengan GKI `android12-5.10` (KMI 9);
+  tidak ada device/codename check (`do.devicecheck=0`).
+- Wajib: `uname -r` stock mengandung `-android12-9-` (atau kernel DarkniusX
+  sebelumnya) **dan** kernel berada di partisi `boot`.
+- **Tidak kompatibel** dengan `-android13-11-`, KMI lain, atau perangkat yang
+  kernel-nya hanya ada di `vendor_boot`.
 - Zip AnyKernel3 hanya mengganti kernel di partisi `boot`; tidak menyentuh
   `vendor_boot`, `vendor_dlkm`, `dtbo`, atau modul GPU overclock.
+- Installer membatalkan flash otomatis jika guard KMI tidak terpenuhi.
 
 Cek perangkat sebelum flashing:
 

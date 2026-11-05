@@ -62,7 +62,7 @@ Isi release notes minimal:
 
 - kernel version dan source commit,
 - varian dan fitur,
-- device/KMI yang didukung,
+- KMI yang didukung (universal `android12-5.10` / KMI 9, tanpa codename),
 - Known issues,
 - cara flash dan rollback (link ke `docs/FLASHING.md`),
 - checksum.

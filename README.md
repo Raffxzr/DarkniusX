@@ -63,8 +63,9 @@ Panduan lengkap (Indonesia): [`docs/PANDUAN-BUILD.md`](docs/PANDUAN-BUILD.md)
 
 ## Kompatibilitas perangkat
 
-Project ini **hanya** untuk perangkat yang memakai GKI `android12-5.10`
-(KMI generation 9). Cek sebelum flashing:
+Zip bersifat **universal**: tidak terikat pada satu codename atau vendor.
+Selama perangkat memakai GKI `android12-5.10` (KMI generation 9) dan kernel
+stock-nya berada di partisi `boot`, zip ini bisa dipakai. Cek sebelum flashing:
 
 ```bash
 adb shell uname -r
@@ -74,9 +75,17 @@ adb shell uname -r
 Jika hasilnya `android13-11` atau KMI lain, **jangan flash**. Vendor module
 tidak akan cocok.
 
+`do.devicecheck=0`, jadi `ro.product.device` tidak diperiksa. Pengamanannya
+ada di `anykernel.sh`: installer membaca kernel yang sedang ada di `boot` dan
+membatalkan flash jika kernel tersebut bukan `-android12-9-` atau build
+DarkniusX sebelumnya (atau jika kernel tidak berada di `boot`). Ini sengaja
+lebih ketat daripada cek codename, karena codename yang sama bisa memakai KMI
+berbeda antar-firmware.
+
 Perangkat target harus punya partisi `boot` (dan biasanya `vendor_boot` serta
 `vendor_dlkm`). Selalu backup `boot`, `vendor_boot`, dan `vendor_dlkm` sebelum
-mencoba kernel kustom.
+mencoba kernel kustom. Flasher GPU overclock tetap project terpisah dan tidak
+digabung ke zip ini.
 
 ## Struktur project
 

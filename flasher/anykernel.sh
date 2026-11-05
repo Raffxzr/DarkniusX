@@ -1,10 +1,14 @@
 ### AnyKernel3 Ramdisk Mod Script
 ## DarkniusX kernel flasher
 ##
-## This template ONLY replaces the kernel inside the existing boot partition.
-## It does not touch vendor_boot, vendor_dlkm, dtbo, or the GPU overclock module.
+## Universal for any device running GKI android12-5.10 (KMI generation 9).
+## The installer reads the current boot kernel and aborts unless it reports
+## "-android12-9-", so the package is not tied to one codename.
 ##
-## The packaging script fills in kernel.string and (optionally) device.name1.
+## It ONLY replaces the kernel inside the existing boot partition. It does not
+## touch vendor_boot, vendor_dlkm, dtbo, or the separate GPU overclock module.
+##
+## The packaging script fills in kernel.string.
 
 properties() { '
 kernel.string=DarkniusX
@@ -33,15 +37,23 @@ PATCH_VBMETA_FLAG=auto;
 split_boot;
 
 # Safety guard: this kernel is only for GKI android12-5.10 (KMI generation 9).
-# Refuse to overwrite a boot image whose current kernel reports another KMI.
-if [ -f "$SPLITIMG/kernel" ]; then
-	if ! strings "$SPLITIMG/kernel" | grep -q -- '-android12-9-'; then
-		ui_print " ";
-		ui_print "*** DarkniusX: incompatible kernel detected ***";
-		ui_print "This package requires android12-5.10 (KMI 9).";
-		ui_print "Your current boot kernel is not -android12-9-.";
-		abort "Installation aborted to protect your device.";
-	fi;
+# The package is universal across codenames, so the boot image itself is the
+# source of truth. Refuse to continue if the kernel is not in boot or if the
+# current kernel reports another KMI.
+if [ ! -f "$SPLITIMG/kernel" ]; then
+	ui_print " ";
+	ui_print "*** DarkniusX: no kernel found in the boot partition ***";
+	abort "This package requires the kernel to live in the boot partition.";
+fi;
+
+# Accept a stock KMI 9 kernel (-android12-9-) or an already-installed
+# DarkniusX build (-DarkniusX) so updates and Vanilla <-> KSU switches work.
+if ! strings "$SPLITIMG/kernel" | grep -qE -- '-android12-9-|-DarkniusX'; then
+	ui_print " ";
+	ui_print "*** DarkniusX: incompatible kernel detected ***";
+	ui_print "This package requires android12-5.10 (KMI 9).";
+	ui_print "Your current boot kernel is not -android12-9-.";
+	abort "Installation aborted to protect your device.";
 fi;
 
 flash_boot;

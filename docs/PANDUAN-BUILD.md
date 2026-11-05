@@ -417,7 +417,7 @@ ABI check sudah lolos.
 
 ---
 
-## 9. Packaging dan device check
+## 9. Packaging universal (KMI guard)
 
 Build script otomatis memanggil `scripts/package.sh`. Untuk packaging ulang
 tanpa rebuild:
@@ -427,23 +427,24 @@ bash scripts/package.sh vanilla
 bash scripts/package.sh ksu
 ```
 
-### Aktifkan device check
+### Tidak ada codename check
 
-Sangat disarankan agar zip menolak terpasang di device yang salah:
+Zip sengaja dibuat **universal** untuk semua perangkat yang memakai GKI
+`android12-5.10` (KMI generation 9), bukan untuk satu codename tertentu.
+`do.devicecheck=0`, jadi `ro.product.device` tidak diperiksa.
 
-```bash
-DEVICE_NAME=X6853 bash scripts/package.sh vanilla
-```
+Pengamannya ada di `anykernel.sh`:
 
-`DEVICE_NAME` harus sama dengan `ro.product.device` perangkat (case-sensitive).
-Beberapa perangkat Infinix memakai nama seperti `Infinix-X6853`; cek:
+1. Kernel harus berada di partisi `boot` (bukan `vendor_boot`).
+2. Kernel yang sedang terpasang harus mengandung `-android12-9-` (stock) atau
+   `-DarkniusX` (build DarkniusX sebelumnya). Token kedua membuat update dan
+   perpindahan Vanilla ↔ KSU bisa langsung di-flash ulang.
+3. Jika salah satu tidak terpenuhi, instalasi dibatalkan sebelum menulis
+   partisi.
 
-```bash
-adb shell getprop ro.product.device
-```
-
-Jika `DEVICE_NAME` tidak diisi, `do.devicecheck=0` dan zip bisa terpasang di
-device apa pun. Ini berbahaya; hanya gunakan untuk testing terkontrol.
+Artinya perangkat dengan `android13-11` atau layout kernel di `vendor_boot`
+akan ditolak otomatis. Ini lebih aman daripada device check berbasis codename,
+karena codename yang sama bisa memakai KMI berbeda antar-firmware.
 
 ### Isi zip
 
@@ -456,7 +457,8 @@ tools/
 
 `anykernel.sh` memakai `BLOCK=boot`, `IS_SLOT_DEVICE=1`, dan hanya mengganti
 kernel di partisi `boot`. Ramdisk, `vendor_boot`, `vendor_dlkm`, dan `dtbo`
-tidak disentuh.
+tidak disentuh. Flasher GPU overclock tetap project terpisah dan **tidak**
+digabung ke zip ini.
 
 ---
 
@@ -676,7 +678,8 @@ yang sering:
 - [ ] WiFi, Bluetooth, touch, kamera, audio, sensor bekerja
 - [ ] Tidak ada reboot spontan setelah 24 jam
 - [ ] Benchmark stock vs Vanilla vs KSU tercatat
-- [ ] `DEVICE_NAME` di-set saat packaging
+- [ ] Guard KMI `-android12-9-` aktif di zip (bukan device/codename check)
+- [ ] Flasher GPU overclock tetap terpisah dari zip kernel
 - [ ] Backup `boot`/`vendor_boot`/`vendor_dlkm` tersimpan
 - [ ] `freeze.sh` dijalankan dan manifest disimpan
 - [ ] Zip diunggah ke GitHub Releases beserta `SHA256SUMS` dan `BUILD_INFO.txt`

@@ -5,8 +5,11 @@
 # Usage: bash scripts/package.sh <vanilla|ksu>
 #
 # Env:
-#   DEVICE_NAME=X6853      aktifkan device check di AnyKernel3
 #   INCLUDE_VMLINUX=1      ikutkan vmlinux (besar, hanya untuk debugging)
+#
+# Paket bersifat universal untuk perangkat GKI android12-5.10 (KMI 9).
+# Tidak ada device/codename check; anykernel.sh memverifikasi kernel di
+# partisi boot dan membatalkan flash jika bukan -android12-9-.
 # =============================================================================
 
 set -euo pipefail
@@ -75,6 +78,7 @@ source       : lifeats666ln/kernel_common-5.10 @ $SRC_COMMIT
 KernelSU     : $([ "$VARIANT" = "ksu" ] && echo "$KSU_VERSION" || echo "-")
 localversion : -DarkniusX
 LTO          : $LTO_MODE
+coverage     : universal GKI android12-5.10 (KMI 9), no codename check
 built        : $BUILD_DATE
 host         : $(uname -srm)
 build user   : ${USER:-unknown}
@@ -99,17 +103,8 @@ rm -rf "$TMP_DIR/.git"
 cp -f "$PROJECT_DIR/flasher/anykernel.sh" "$TMP_DIR/anykernel.sh"
 cp -f "$OUT_DIR/Image" "$TMP_DIR/Image"
 
-sed -i "s|^kernel.string=.*|kernel.string=DarkniusX ${VARIANT} ${KVER} (${LTO_MODE} LTO)|" "$TMP_DIR/anykernel.sh"
-
-if [ -n "${DEVICE_NAME:-}" ]; then
-	# Hanya huruf, angka, titik, garis bawah, dan strip.
-	SAFE_DEVICE="$(printf '%s' "$DEVICE_NAME" | tr -cd 'A-Za-z0-9._-')"
-	[ -n "$SAFE_DEVICE" ] || die "DEVICE_NAME tidak valid"
-	sed -i "s|^do.devicecheck=0|do.devicecheck=1|; s|^device.name1=.*|device.name1=${SAFE_DEVICE}|" "$TMP_DIR/anykernel.sh"
-	info "Device check diaktifkan untuk: $SAFE_DEVICE"
-else
-	warn "DEVICE_NAME tidak di-set; AnyKernel3 tidak akan memeriksa codename device."
-fi
+sed -i "s|^kernel.string=.*|kernel.string=DarkniusX ${VARIANT} ${KVER} (${LTO_MODE} LTO, universal KMI 9)|" "$TMP_DIR/anykernel.sh"
+info "Mode universal: tanpa device/codename check (guard: -android12-9-)"
 
 ZIP_NAME="DarkniusX-${VARIANT}-${KVER}-$(date -u '+%Y%m%d').zip"
 (
