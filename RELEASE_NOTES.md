@@ -22,9 +22,12 @@ Tersedia dua varian: **Vanilla** dan **KernelSU Next**.
 
 | File | Varian | Keterangan |
 |---|---|---|
-| `DarkniusX-vanilla-5.10.272-YYYYMMDD.zip` | Vanilla | Tanpa root |
-| `DarkniusX-ksu-5.10.272-YYYYMMDD.zip` | KernelSU Next | Root via KernelSU-Next Manager |
+| `DarkniusX-vanilla-5.10.272-20261105.zip` | Vanilla | Tanpa root |
+| `DarkniusX-ksu-5.10.272-20261105.zip` | KernelSU Next | Root via KernelSU-Next Manager |
 | `SHA256SUMS` | Keduanya | Checksum |
+| `BUILD_INFO-vanilla.txt`, `BUILD_INFO-ksu.txt` | Keduanya | Detail build |
+| `config-vanilla`, `config-ksu` | Keduanya | Config final |
+| `manifest.xml` | — | Manifest repo terkunci |
 
 ## Kompatibilitas
 
