@@ -4,32 +4,17 @@ Kernel GKI **Linux 5.10 (android12-5.10)** yang difokuskan untuk stabilitas dan 
 
 | Varian | Root | Keterangan |
 |---|---|---|
-| **Vanilla** | Tidak | Kernel bersih, tanpa KernelSU |
+| **Vanilla** | Tidak | tanpa Root |
 | **KernelSU Next** | Ya | Kernel + KernelSU Next `v3.4.2` (built-in, `CONFIG_KSU=y`) |
 
 ## Basis
 
 - AOSP common kernel: `common-android12-5.10` (KMI generation **9**)
 - Fork sumber: [`lifeats666ln/kernel_common-5.10`](https://github.com/lifeats666ln/kernel_common-5.10) branch `android12-5.10`
-- Commit yang di-pin: `f04d8c2a2f78a836d81d7ab0c1ab675f4ddddc9f` (Linux **5.10.272**)
-- Toolchain: AOSP Clang `r416183b` dari manifest `common-android12-5.10`
-- Build system: legacy `build/build.sh` (bukan Kleaf)
+- Commit : `f04d8c2a2f78a836d81d7ab0c1ab675f4ddddc9f` (Linux **5.10.272**)
+- Toolchain: AOSP Clang `r416183b` manifest `common-android12-5.10`
+- Build system: legacy `build/build.sh`
 
-## Perubahan utama
-
-- Branding `uname -r` menjadi `5.10.272-DarkniusX` (release token aman karena `CONFIG_MODVERSIONS=y`).
-- Menghapus instrumentasi debug yang tidak termasuk kontrak KMI GKI:
-  `UBSAN`, `KFENCE`.
-- **Tidak** mematikan `KASAN`/`KASAN_HW_TAGS`, `PAGE_OWNER`, `DEBUG_LIST`,
-  `SCHEDSTATS`, dan `SCHED_DEBUG`: opsi tersebut menyediakan simbol KMI GKI
-  dan/atau mengubah layout `struct task_struct`/`struct sched_entity`. Vendor
-  module di perangkat dikompilasi terhadap layout GKI stok, jadi menonaktifkan
-  opsi ini bisa menggagalkan KMI check atau membuat module membaca offset yang
-  salah.
-- Mempertahankan fitur keamanan inti GKI: `CFI_CLANG`, `SHADOW_CALL_STACK`,
-  `HARDENED_USERCOPY`, `INIT_ON_ALLOC_DEFAULT_ON`, `MODVERSIONS`, SELinux.
-- Varian KernelSU memakai KernelSU Next `v3.4.2` dengan hook kprobes/LSM
-  bawaan, bukan patch manual.
 
 ## Mulai cepat
 
@@ -115,13 +100,12 @@ DarkniusX/
 
 - Ini bukan proyek GPU overclock. Folder `Flasher-Overclock-1.4GHz` adalah
   modul `vendor_dlkm` terpisah; jangan dicampur ke zip kernel ini.
-- Build harus berada di filesystem Linux (ext4/btrfs). Jangan build di
-  `/mnt/sdb2` yang NTFS.
+- Build harus berada di filesystem Linux (ext4/btrfs).
 - Kernel kustom selalu punya risiko bootloop. Backup partisi `boot` sebelum
   flashing.
 - Status saat ini: build Vanilla dan KernelSU Next sudah berhasil di host
   (termasuk KMI check) dan artifact tersedia di `artifacts/`. Kernel belum
-  diuji di perangkat fisik; verifikasi `uname -r`, module vendor, WiFi/BT, dan
+  diuji; verifikasi `uname -r`, module vendor, WiFi/BT, dan
   touch setelah flash.
 
 ## Lisensi
