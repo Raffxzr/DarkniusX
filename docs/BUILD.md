@@ -175,10 +175,10 @@ What the script does:
 1. `repo init` the `kernel/manifest` manifest, branch `common-android12-5.10`,
    with `--depth=1`.
 2. `repo sync -c -j8 --no-tags --no-clone-bundle --force-sync`.
-3. Overlay `common/` with the fork:
-   - remote `darkniusx` → `https://github.com/lifeats666ln/kernel_common-5.10.git`
+3. Overlay `common/` with the DarkniusX kernel source:
+   - remote `darkniusx` → `https://github.com/Raffxzr/DarkniusX-android12-5.10.git`
    - fetch branch `android12-5.10`
-   - check out commit `f04d8c2a2f78a836d81d7ab0c1ab675f4ddddc9f`
+   - check out commit `b717bab759fe803b6a2bf189566d5e58bad93b7d`
 4. Copy the config fragments into `aosp/.darkniusx/`.
 
 Result:
@@ -615,13 +615,13 @@ Details: [`BENCHMARK.md`](BENCHMARK.md).
 The fork is pinned to a specific commit in `scripts/env.sh`:
 
 ```bash
-FORK_COMMIT="f04d8c2a2f78a836d81d7ab0c1ab675f4ddddc9f"
+FORK_COMMIT="b717bab759fe803b6a2bf189566d5e58bad93b7d"
 ```
 
 For a deliberate update:
 
 ```bash
-git ls-remote https://github.com/lifeats666ln/kernel_common-5.10.git refs/heads/android12-5.10
+git ls-remote https://github.com/Raffxzr/DarkniusX-android12-5.10.git refs/heads/android12-5.10
 ```
 
 Replace `FORK_COMMIT` with the new hash, then:
@@ -689,7 +689,7 @@ See [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) for the full list. Common issues:
 
 ## 15. Notes on the performance configuration
 
-The `lifeats666ln` fork already carries many tweaks in `gki_defconfig`:
+The `DarkniusX-android12-5.10` source tree already carries many performance optimizations in `gki_defconfig`:
 
 - `CONFIG_PREEMPT=y`
 - `CONFIG_TCP_CONG_BBR=y`, CUBIC disabled

@@ -1,111 +1,134 @@
 # DarkniusX
 
-A GKI **Linux 5.10 (android12-5.10)** kernel focused on stability and daily
-performance, available in two variants:
+<p align="center">
+  <img src="https://img.shields.io/badge/Kernel-Linux%205.10.272-blue?style=for-the-badge&logo=linux" alt="Linux Version">
+  <img src="https://img.shields.io/badge/GKI-Android%2012%20(KMI%209)-green?style=for-the-badge&logo=android" alt="GKI KMI 9">
+  <img src="https://img.shields.io/badge/KernelSU%20Next-v3.4.2-orange?style=for-the-badge" alt="KernelSU Next">
+  <img src="https://img.shields.io/badge/License-GPL--2.0-red?style=for-the-badge" alt="License">
+</p>
 
-| Variant | Root | Notes |
-|---|---|---|
-| **Vanilla** | No | No root |
-| **KernelSU Next** | Yes | Kernel + KernelSU Next `v3.4.2` (built-in, `CONFIG_KSU=y`) |
+A universal **Linux 5.10 (android12-5.10 / KMI generation 9)** Generic Kernel Image (GKI) focused on stability, daily performance, and clean root management.
 
-## Base
+---
 
-- AOSP common kernel: `common-android12-5.10` (KMI generation **9**)
-- Source fork: [`lifeats666ln/kernel_common-5.10`](https://github.com/lifeats666ln/kernel_common-5.10), branch `android12-5.10`
-- Pinned commit: `f04d8c2a2f78a836d81d7ab0c1ab675f4ddddc9f` (Linux **5.10.272**)
-- Toolchain: AOSP Clang `r416183b` from the `common-android12-5.10` manifest
-- Build system: legacy `build/build.sh`
+## 📌 Repositories in the DarkniusX Ecosystem
 
-## Quick start
+Following modern modular Android kernel projects (ATM SuiKernel), the project is split into focused repositories:
 
-Run every command from this project folder:
+| Repository | Description |
+|---|---|
+| **[DarkniusX](https://github.com/Raffxzr/DarkniusX)** *(This repo)* | **Release Hub & Build Toolkit** — Flashable AnyKernel3 releases, documentation, issue tracking, and build harness. |
+| **[DarkniusX-android12-5.10](https://github.com/Raffxzr/DarkniusX-android12-5.10)** | **Official Kernel Source Tree** — Full upstream Android Common Kernel source code (Linux 5.10.272) for GPL-2.0 compliance and patch development. |
 
-```bash
-# 1. Check/install host dependencies (Arch/CachyOS)
-bash scripts/install-deps.sh
+---
 
-# 2. Sync AOSP + overlay the fork (once; downloads several GB)
-bash scripts/setup.sh
+## ⚡ Variants
 
-# 3. Build the Vanilla variant (ThinLTO, safe for 15 GiB RAM)
-bash scripts/build.sh vanilla thin
+DarkniusX is available in two distinct flavors:
 
-# 4. Build the KernelSU Next variant
-bash scripts/build.sh ksu thin
+| Variant | Root Solution | Built-in Features | Best For |
+|---|---|---|---|
+| **Vanilla** | None | Pure GKI performance, unrooted | Daily drivers, stock feel, maximum safety |
+| **KernelSU Next** | KernelSU Next `v3.4.2` | Native kernel-level root (`CONFIG_KSU=y`) | Power users requiring modern root & module support |
 
-# or build both
-bash scripts/build.sh all thin
-```
+---
 
-Build outputs and AnyKernel3 zips are written to:
+## 📥 Downloads
 
-```text
-$HOME/darkniusx/artifacts/vanilla/
-$HOME/darkniusx/artifacts/ksu/
-```
+Ready-to-flash AnyKernel3 zip files are hosted on GitHub Releases:
 
-Full guide: [`docs/BUILD.md`](docs/BUILD.md)
+👉 **[Go to Latest Releases](https://github.com/Raffxzr/DarkniusX/releases)**
 
-## Device compatibility
+| Package | Description |
+|---|---|
+| `DarkniusX-vanilla-5.10.272-<date>.zip` | Flashes the Vanilla (non-root) kernel |
+| `DarkniusX-ksu-5.10.272-<date>.zip` | Flashes the KernelSU Next variant |
+| `SHA256SUMS` | SHA256 checksums for integrity verification |
 
-The zip is **universal**: it is not tied to a single codename or vendor. It can
-be used on any device that runs GKI `android12-5.10` (KMI generation 9) and
-keeps its stock kernel in the `boot` partition. Check before flashing:
+---
+
+## 📱 Device Compatibility
+
+DarkniusX is **Universal**: it does not lock to a specific brand or device codename (`do.devicecheck=0`). Any device that fulfills the following criteria is compatible:
+
+1. **Kernel Type:** Stock kernel runs GKI **android12-5.10** with **KMI generation 9**.
+2. **Boot Scheme:** Device stores its kernel in the standard `boot` partition (not solely in `vendor_boot`).
+
+### How to verify your device before flashing:
+
+Connect your phone via USB with USB Debugging enabled, then run:
 
 ```bash
 adb shell uname -r
-# must contain: -android12-9-
 ```
 
-If the output contains `android13-11` or another KMI, **do not flash**. Vendor
-modules will not match.
+* **COMPATIBLE:** Output contains `-android12-9-` (for example: `5.10.209-android12-9-g...`).
+* **INCOMPATIBLE:** Output contains `android13-11` or any other KMI generation. **DO NOT FLASH** if KMI doesn't match, or vendor modules will fail to load!
 
-`do.devicecheck=0`, so `ro.product.device` is not checked. The safety guard is
-in `anykernel.sh`: the installer reads the kernel currently installed in
-`boot` and aborts if it is neither `-android12-9-` (stock) nor a previous
-DarkniusX build. This is intentionally stricter than a codename check, because
-the same codename can use different KMIs across firmware versions.
+> **Safety Guard:** The AnyKernel3 installer checks the running kernel's vermagic and aborts automatically if the partition doesn't match `-android12-9-` or an existing DarkniusX build.
 
-The target device must have a `boot` partition (and usually `vendor_boot` and
-`vendor_dlkm`). Always back up `boot`, `vendor_boot`, and `vendor_dlkm` before
-trying a custom kernel. The GPU overclock flasher remains a separate project
-and is not merged into this zip.
+---
 
-## Project layout
+## 🚀 How to Flash
 
-```text
-DarkniusX/
-├── build/fragment.sh       # BUILD_CONFIG_FRAGMENTS hook for the AOSP build
-├── config/
-│   ├── base.config         # shared config fragment (Vanilla)
-│   └── ksu.config          # adds CONFIG_KSU=y
-├── docs/
-│   ├── BUILD.md            # full build guide
-│   ├── FLASHING.md         # backup, flash, rollback
-│   ├── BENCHMARK.md        # how to compare performance
-│   └── TROUBLESHOOTING.md  # common errors
-├── flasher/anykernel.sh    # AnyKernel3 template (kernel-only)
-├── RELEASE_NOTES.md        # release notes template
-└── scripts/
-    ├── env.sh              # configuration and helper functions
-    ├── install-deps.sh
-    ├── setup.sh            # repo sync + fork overlay
-    ├── build.sh            # build + package
-    ├── package.sh          # artifacts + AnyKernel3 zip
-    └── freeze.sh           # save the locked manifest/revisions
+> [!WARNING]
+> Always create a backup of your stock `boot` partition before flashing any custom kernel!
+> Custom kernels always carry a bootloop risk. Back up `boot`, `vendor_boot`, and `vendor_dlkm` before trying a custom kernel.
+
+### Method 1: Custom Recovery (TWRP / OrangeFox)
+1. Download the preferred zip file (`Vanilla` or `KernelSU Next`) from [Releases](https://github.com/Raffxzr/DarkniusX/releases).
+2. Boot into Recovery mode.
+3. **Backup** the `Boot` partition (and `Vendor Boot`/`Vendor DLKM` if present).
+4. Tap **Install**, select `DarkniusX-*.zip`, and swipe to flash.
+5. Reboot System.
+
+### Method 2: Recovery Sideload
+```bash
+adb reboot recovery
+adb sideload DarkniusX-ksu-5.10.272-*.zip
 ```
 
-## Warnings
+### Rollback (If needed)
+If you encounter any boot issues, restore your stock boot image via fastboot:
+```bash
+fastboot flash boot boot-stock.img
+fastboot reboot
+```
 
-- The build must run on a Linux filesystem (ext4/btrfs).
-- Custom kernels always carry a bootloop risk. Back up the `boot` partition
-  before flashing.
-- Current status: host builds for Vanilla and KernelSU Next succeeded
-  (including the KMI check) and artifacts are available in `artifacts/`. The
-  kernel has not been tested on a device yet; verify `uname -r`,
-  vendor modules, WiFi/BT, and touch after flashing.
+---
 
-## License
+## 🛠️ Building from Source
 
-The kernel source follows the GPL-2.0 license from Linux/AOSP. The scripts and
-configs in this project are licensed under GPL-2.0-only.
+If you want to compile DarkniusX locally:
+
+```bash
+# 1. Install host dependencies (Arch/CachyOS)
+bash scripts/install-deps.sh
+
+# 2. Sync AOSP build toolchain + DarkniusX source tree
+bash scripts/setup.sh
+
+# 3. Build Vanilla variant
+bash scripts/build.sh vanilla thin
+
+# 4. Build KernelSU Next variant
+bash scripts/build.sh ksu thin
+```
+
+Detailed guide, troubleshooting, and benchmarks:
+* 📖 [Build Documentation](docs/BUILD.md)
+* 📖 [Flashing & Partition Layout Guide](docs/FLASHING.md)
+* 📖 [Troubleshooting & FAQs](docs/TROUBLESHOOTING.md)
+* 📖 [Benchmarking Notes](docs/BENCHMARK.md)
+
+---
+
+## 📄 License & Credits
+
+* **Linux Kernel Source:** Licensed under **GPL-2.0**. Full source available at [Raffxzr/DarkniusX-android12-5.10](https://github.com/Raffxzr/DarkniusX-android12-5.10).
+* **Build Toolkit & Scripts:** Licensed under **GPL-2.0-only**.
+* **Special Thanks:**
+  * The Linux Kernel and Android Open Source Project (AOSP) contributors.
+  * [KernelSU-Next](https://github.com/KernelSU-Next/KernelSU-Next) team for the modern kernel root solution.
+  * osm0sis for the legendary AnyKernel3 flasher.
+  * Inspiration from the SuiKernel project structure.

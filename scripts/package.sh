@@ -74,7 +74,7 @@ DarkniusX kernel build
 ======================
 variant      : $VARIANT
 kernel       : $KVER
-source       : lifeats666ln/kernel_common-5.10 @ $SRC_COMMIT
+source       : Raffxzr/DarkniusX-android12-5.10 @ $SRC_COMMIT
 KernelSU     : $([ "$VARIANT" = "ksu" ] && echo "$KSU_VERSION" || echo "-")
 localversion : -DarkniusX
 LTO          : $LTO_MODE

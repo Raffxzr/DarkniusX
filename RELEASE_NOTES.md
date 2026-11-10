@@ -10,8 +10,8 @@ Two variants are available: **Vanilla** and **KernelSU Next**.
 
 ## Release contents
 
-- Base: AOSP `common-android12-5.10` + `lifeats666ln/kernel_common-5.10` fork
-- Source commit: `f04d8c2a2f78a836d81d7ab0c1ab675f4ddddc9f`
+- Base: AOSP `common-android12-5.10` + `Raffxzr/DarkniusX-android12-5.10`
+- Source commit: `b717bab759fe803b6a2bf189566d5e58bad93b7d`
 - Linux: `5.10.272`
 - `uname -r`: `5.10.272-DarkniusX`
 - Toolchain: AOSP Clang `r416183b`

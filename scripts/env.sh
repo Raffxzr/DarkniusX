@@ -27,9 +27,9 @@ export DARKNIUSX_HOME AOSP_DIR ARTIFACTS_DIR
 
 MANIFEST_URL="https://android.googlesource.com/kernel/manifest"
 MANIFEST_BRANCH="common-android12-5.10"
-FORK_URL="https://github.com/lifeats666ln/kernel_common-5.10.git"
+FORK_URL="https://github.com/Raffxzr/DarkniusX-android12-5.10.git"
 FORK_BRANCH="android12-5.10"
-FORK_COMMIT="f04d8c2a2f78a836d81d7ab0c1ab675f4ddddc9f"
+FORK_COMMIT="b717bab759fe803b6a2bf189566d5e58bad93b7d"
 KSU_VERSION="v3.4.2"
 KSU_REPO="https://github.com/KernelSU-Next/KernelSU-Next.git"
 KSU_SETUP_URL="https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/${KSU_VERSION}/kernel/setup.sh"
@@ -96,7 +96,7 @@ repo_head() {
 }
 
 overlay_fork() {
-	info "Overlay kernel fork lifeats666ln @ ${FORK_COMMIT:0:12}"
+	info "Overlay DarkniusX source tree @ ${FORK_COMMIT:0:12}"
 	cd "$AOSP_DIR/common"
 
 	if git remote get-url darkniusx >/dev/null 2>&1; then
