@@ -11,7 +11,7 @@ Two variants are available: **Vanilla** and **KernelSU Next**.
 ## Release contents
 
 - Base: AOSP `common-android12-5.10` + `Raffxzr/DarkniusX-android12-5.10`
-- Source commit: `9f80eedc577dc7232cd31b4bbc6b8e871f8a1c41`
+- Source commit: `ec838f9e1114fb90dfb4ddbcdfe3d2114bdf7860`
 - Linux: `5.10.272`
 - `uname -r`: `5.10.272-DarkniusX`
 - Toolchain: AOSP Clang `r416183b`

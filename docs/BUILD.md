@@ -178,7 +178,7 @@ What the script does:
 3. Overlay `common/` with the DarkniusX kernel source:
    - remote `darkniusx` → `https://github.com/Raffxzr/DarkniusX-android12-5.10.git`
    - fetch branch `android12-5.10`
-   - check out commit `9f80eedc577dc7232cd31b4bbc6b8e871f8a1c41`
+   - check out commit `ec838f9e1114fb90dfb4ddbcdfe3d2114bdf7860`
 4. Copy the config fragments into `aosp/.darkniusx/`.
 
 Result:
@@ -615,7 +615,7 @@ Details: [`BENCHMARK.md`](BENCHMARK.md).
 The fork is pinned to a specific commit in `scripts/env.sh`:
 
 ```bash
-FORK_COMMIT="9f80eedc577dc7232cd31b4bbc6b8e871f8a1c41"
+FORK_COMMIT="ec838f9e1114fb90dfb4ddbcdfe3d2114bdf7860"
 ```
 
 For a deliberate update:
