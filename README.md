@@ -4,6 +4,7 @@
   <img src="https://img.shields.io/badge/Kernel-Linux%205.10.272-blue?style=for-the-badge&logo=linux" alt="Linux Version">
   <img src="https://img.shields.io/badge/GKI-Android%2012%20(KMI%209)-green?style=for-the-badge&logo=android" alt="GKI KMI 9">
   <img src="https://img.shields.io/badge/KernelSU%20Next-v3.4.2-orange?style=for-the-badge" alt="KernelSU Next">
+  <a href="https://github.com/Raffxzr/DarkniusX/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/Raffxzr/DarkniusX/build.yml?branch=main&label=CI%20Build&style=for-the-badge" alt="CI Build"></a>
   <img src="https://img.shields.io/badge/License-GPL--2.0-red?style=for-the-badge" alt="License">
 </p>
 

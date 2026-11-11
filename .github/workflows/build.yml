@@ -1,0 +1,123 @@
+name: Build DarkniusX Kernel
+
+on:
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: 'Kernel Variant to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - vanilla
+          - ksu
+      lto:
+        description: 'LTO mode (thin is faster and memory-efficient)'
+        required: true
+        default: 'thin'
+        type: choice
+        options:
+          - thin
+          - full
+      create_release:
+        description: 'Publish outputs to GitHub Releases'
+        required: false
+        default: false
+        type: boolean
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-kernel:
+    name: Build Kernel (${{ inputs.variant || 'all' }})
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout DarkniusX Toolkit
+        uses: actions/checkout@v4
+
+      - name: Free Runner Disk Space
+        run: |
+          echo "==> Disk space before cleanup:"
+          df -h /
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -a --force || true
+          echo "==> Disk space after cleanup:"
+          df -h /
+
+      - name: Setup Swap Space (10 GB)
+        run: |
+          sudo fallocate -l 10G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
+
+      - name: Configure Git Identity & Environment
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install Build Dependencies
+        run: |
+          bash scripts/install-deps.sh
+
+      - name: Setup AOSP Manifest & Source
+        run: |
+          export SYNC_JOBS=4
+          bash scripts/setup.sh
+
+      - name: Compile DarkniusX
+        run: |
+          VARIANT="${{ inputs.variant || 'all' }}"
+          LTO_MODE="${{ inputs.lto || 'thin' }}"
+          echo "==> Building $VARIANT with LTO=$LTO_MODE"
+          bash scripts/build.sh "$VARIANT" "$LTO_MODE"
+
+      - name: Organize Artifacts
+        id: organize
+        run: |
+          mkdir -p release_assets
+          # Copy AnyKernel3 zip files
+          find "$HOME/darkniusx/artifacts" -name "*.zip" -exec cp -f {} release_assets/ \;
+          # Copy checksums, configs, and build info
+          find "$HOME/darkniusx/artifacts" -name "SHA256SUMS" -exec cp -f {} release_assets/ \;
+          find "$HOME/darkniusx/artifacts" -name "BUILD_INFO.txt" -exec cp -f {} release_assets/ \;
+          
+          # Compute master SHA256SUMS for the zip packages
+          (
+            cd release_assets
+            sha256sum *.zip > SHA256SUMS.txt
+          )
+          
+          echo "BUILD_DATE=$(date -u +'%Y%m%d')" >> $GITHUB_ENV
+          echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_ENV
+          ls -la release_assets/
+
+      - name: Upload Artifacts to Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: DarkniusX-${{ env.BUILD_DATE }}-${{ env.SHORT_SHA }}
+          path: release_assets/
+          if-no-files-found: error
+
+      - name: Publish to GitHub Releases
+        if: ${{ (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) || inputs.create_release == true }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('build-{0}-{1}', env.BUILD_DATE, github.run_number) }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && format('DarkniusX {0}', github.ref_name) || format('DarkniusX CI Build {0}', env.BUILD_DATE) }}
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+          files: release_assets/*
