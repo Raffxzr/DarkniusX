@@ -31,9 +31,9 @@ FORK_URL="https://github.com/Raffxzr/DarkniusX-android12-5.10.git"
 FORK_BRANCH="android12-5.10"
 FORK_COMMIT="ec838f9e1114fb90dfb4ddbcdfe3d2114bdf7860"
 KSU_VERSION="v3.4.2"
-KSU_REPO="https://github.com/KernelSU-Next/KernelSU-Next.git"
-KSU_SETUP_URL="https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/${KSU_VERSION}/kernel/setup.sh"
-export MANIFEST_URL MANIFEST_BRANCH FORK_URL FORK_BRANCH FORK_COMMIT KSU_VERSION KSU_REPO KSU_SETUP_URL
+KSU_REPO="https://github.com/pershoot/KernelSU-Next.git"
+KSU_BRANCH="dev-susfs"
+export MANIFEST_URL MANIFEST_BRANCH FORK_URL FORK_BRANCH FORK_COMMIT KSU_VERSION KSU_REPO KSU_BRANCH
 
 info()  { printf '\n==> %s\n' "$*"; }
 warn()  { printf '\n[WARN] %s\n' "$*" >&2; }
@@ -150,10 +150,10 @@ prepare_fragments() {
 }
 
 prepare_ksu() {
-	info "Preparing KernelSU Next ${KSU_VERSION}"
+	info "Preparing KernelSU Next ${KSU_VERSION} (${KSU_BRANCH})"
 	cd "$AOSP_DIR/common"
 
-	# A leftover manual extract / broken clone would make setup.sh fail.
+	# A leftover manual extract / broken clone would make setup fail.
 	if [ -d KernelSU-Next ] && [ ! -d KernelSU-Next/.git ]; then
 		warn "KernelSU-Next exists but is not a git repo; removing and re-cloning"
 		rm -rf KernelSU-Next
@@ -165,26 +165,26 @@ prepare_ksu() {
 	grep -q 'kernelsu' drivers/Makefile 2>/dev/null || need_setup=1
 	grep -q 'drivers/kernelsu/Kconfig' drivers/Kconfig 2>/dev/null || need_setup=1
 
-	if [ -d KernelSU-Next ]; then
-		local tag
-		tag="$(git -C KernelSU-Next describe --tags --exact-match 2>/dev/null || true)"
-		[ "$tag" = "$KSU_VERSION" ] || need_setup=1
-	fi
-
 	if [ "$need_setup" -eq 1 ]; then
-		[ -d KernelSU-Next ] || info "Cloning KernelSU Next (once; requires network)"
-		curl -LSs "$KSU_SETUP_URL" | bash -s "$KSU_VERSION"
+		if [ ! -d KernelSU-Next ]; then
+			info "Cloning KernelSU Next (branch: ${KSU_BRANCH})"
+			git clone --depth 1 -b "$KSU_BRANCH" "$KSU_REPO" KernelSU-Next
+			# Fetch tags and history so Kbuild computes version code accurately
+			git -C KernelSU-Next fetch --unshallow --tags origin 2>/dev/null || true
+		fi
+
+		cd "$AOSP_DIR/common/drivers"
+		ln -sf ../KernelSU-Next/kernel kernelsu
+		grep -q "kernelsu" Makefile || printf '\nobj-$(CONFIG_KSU) += kernelsu/\n' >> Makefile
+		grep -q 'drivers/kernelsu/Kconfig' Kconfig || sed -i '/endmenu/i\source "drivers/kernelsu/Kconfig"' Kconfig
+		cd "$AOSP_DIR/common"
 	else
-		info "KernelSU Next ${KSU_VERSION} is already installed"
+		info "KernelSU Next (${KSU_BRANCH}) is already configured"
 	fi
 
 	[ -L drivers/kernelsu ] || die "The drivers/kernelsu symlink is missing. KernelSU setup failed."
 	grep -q 'kernelsu' drivers/Makefile || die "drivers/Makefile does not include kernelsu. KernelSU setup failed."
 	grep -q 'drivers/kernelsu/Kconfig' drivers/Kconfig || die "drivers/Kconfig does not include kernelsu. KernelSU setup failed."
-
-	local tag
-	tag="$(git -C KernelSU-Next describe --tags --exact-match 2>/dev/null || true)"
-	[ "$tag" = "$KSU_VERSION" ] || die "KernelSU Next is at '$tag', not $KSU_VERSION."
 }
 
 kernel_version() {
