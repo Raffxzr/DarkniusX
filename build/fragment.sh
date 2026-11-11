@@ -63,10 +63,20 @@ darkniusx_post_defconfig() {
 		fi
 	done
 
+	# Ensure NTSYNC is enabled for both variants
+	if ! grep -q '^CONFIG_NTSYNC=y' "${OUT_DIR}/.config"; then
+		echo "ERROR: CONFIG_NTSYNC is not enabled." >&2
+		exit 1
+	fi
+
 	if [ "${DARKNIUSX_VARIANT}" = "ksu" ]; then
 		if ! grep -q '^CONFIG_KSU=y' "${OUT_DIR}/.config"; then
 			echo "ERROR: CONFIG_KSU is not enabled." >&2
 			echo "       Did the KernelSU Next setup script run successfully?" >&2
+			exit 1
+		fi
+		if ! grep -q '^CONFIG_KSU_SUSFS=y' "${OUT_DIR}/.config"; then
+			echo "ERROR: CONFIG_KSU_SUSFS is not enabled." >&2
 			exit 1
 		fi
 	fi

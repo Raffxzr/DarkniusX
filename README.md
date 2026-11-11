@@ -4,11 +4,13 @@
   <img src="https://img.shields.io/badge/Kernel-Linux%205.10.272-blue?style=for-the-badge&logo=linux" alt="Linux Version">
   <img src="https://img.shields.io/badge/GKI-Android%2012%20(KMI%209)-green?style=for-the-badge&logo=android" alt="GKI KMI 9">
   <img src="https://img.shields.io/badge/KernelSU%20Next-v3.4.2-orange?style=for-the-badge" alt="KernelSU Next">
+  <img src="https://img.shields.io/badge/SUSFS-v1.5.x-purple?style=for-the-badge" alt="SUSFS">
+  <img src="https://img.shields.io/badge/NTSYNC-Enabled-brightgreen?style=for-the-badge" alt="NTSYNC">
   <a href="https://github.com/Raffxzr/DarkniusX/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/Raffxzr/DarkniusX/build.yml?branch=main&label=CI%20Build&style=for-the-badge" alt="CI Build"></a>
   <img src="https://img.shields.io/badge/License-GPL--2.0-red?style=for-the-badge" alt="License">
 </p>
 
-A universal **Linux 5.10 (android12-5.10 / KMI generation 9)** Generic Kernel Image (GKI) focused on stability, daily performance, and clean root management.
+A universal **Linux 5.10 (android12-5.10 / KMI generation 9)** Generic Kernel Image (GKI) focused on stability, daily performance, stealth root hiding, and low-latency gaming synchronization.
 
 ---
 
@@ -19,18 +21,29 @@ Following modern modular Android kernel projects (ATM SuiKernel), the project is
 | Repository | Description |
 |---|---|
 | **[DarkniusX](https://github.com/Raffxzr/DarkniusX)** *(This repo)* | **Release Hub & Build Toolkit** — Flashable AnyKernel3 releases, documentation, issue tracking, and build harness. |
-| **[DarkniusX-android12-5.10](https://github.com/Raffxzr/DarkniusX-android12-5.10)** | **Official Kernel Source Tree** — Full upstream Android Common Kernel source code (Linux 5.10.272) for GPL-2.0 compliance and patch development. |
+| **[DarkniusX-android12-5.10](https://github.com/Raffxzr/DarkniusX-android12-5.10)** | **Official Kernel Source Tree** — Full upstream Android Common Kernel source code (Linux 5.10.272) integrated with **SUSFS** and **NTSYNC**. |
 
 ---
 
-## ⚡ Variants
+## ⚡ Variants & Features
 
 DarkniusX is available in two distinct flavors:
 
 | Variant | Root Solution | Built-in Features | Best For |
 |---|---|---|---|
-| **Vanilla** | None | Pure GKI performance, unrooted | Daily drivers, stock feel, maximum safety |
-| **KernelSU Next** | KernelSU Next `v3.4.2` | Native kernel-level root (`CONFIG_KSU=y`) | Power users requiring modern root & module support |
+| **Vanilla** | None | Pure GKI performance + **NTSYNC (`/dev/ntsync`)** | Daily drivers, stock feel, PC emulation gaming |
+| **KernelSU Next** | KernelSU Next `v3.4.2` | Native root + **SUSFS v1.5.x (Anti-detection)** + **NTSYNC** | Power users requiring undetectable root (banks/games) |
+
+### 🛡️ SUSFS (Superuser Root Hiding File System)
+Integrated directly into the VFS subsystem (`fs/susfs.c`) with `CONFIG_KSU_SUSFS=y`:
+* **Undetected Root:** Hides `/data/adb`, mount overlays, loop devices, and KSU-specific paths.
+* **Integrity Bypass:** Spoofs `uname -r`, cmdline, and bootconfig for sensitive apps (banking, AlfaGift, Play Integrity).
+* **Stealth Symbols:** Strips KSU/SUSFS trace symbols to prevent scanner hooks.
+
+### 🎮 NTSYNC Driver
+Integrated character device driver (`/dev/ntsync`) with `CONFIG_NTSYNC=y`:
+* **Emulation Speedup:** Native Linux kernel-level Windows NT synchronization primitives (mutexes, semaphores, events).
+* **Windows Gaming on Android:** Massively reduces CPU overhead in Wine, Mobox, Winlator, and Box64 for higher FPS and lower frametime jitter.
 
 ---
 
