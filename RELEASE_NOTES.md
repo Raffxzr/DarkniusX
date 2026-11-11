@@ -1,80 +1,61 @@
-# DarkniusX v1.0.0 (Linux 5.10.272)
+# DarkniusX v1.1.0 (SUSFS & NTSYNC Edition)
 
-> **Status: pre-release.** Host builds for both variants succeeded and passed
-> the KMI check, but the kernel has **not been tested on a physical device**.
-> Do not flash without a `boot` backup, and understand the bootloop risk.
+> **Status: Pre-release.** Built with full SUSFS anti-detection, NTSYNC gaming acceleration, and KernelSU-Next.
+> Always keep a stock `boot` backup before flashing any custom kernel.
 
-DarkniusX is a GKI `android12-5.10` (KMI generation **9**) kernel that is
-**universal**: it works on any device with KMI 9 and is not tied to a codename.
-Two variants are available: **Vanilla** and **KernelSU Next**.
+DarkniusX is a high-performance, stealth-oriented GKI `android12-5.10` (KMI generation **9**) kernel that is **universal**: it works on any device with KMI 9 and is not tied to any device codename.
 
-## Release contents
+## What's New in v1.1.0
 
-- Base: AOSP `common-android12-5.10` + `Raffxzr/DarkniusX-android12-5.10`
-- Source commit: `ec838f9e1114fb90dfb4ddbcdfe3d2114bdf7860`
-- Linux: `5.10.272`
-- `uname -r`: `5.10.272-DarkniusX`
-- Toolchain: AOSP Clang `r416183b`
-- LTO: ThinLTO (unless stated otherwise)
-- KernelSU Next: `v3.4.2` (KSU variant, built-in `CONFIG_KSU=y`)
+- **SUSFS v1.5.x Integration (Anti-Detection & Root Concealment)**:
+  - Deep VFS and SELinux hooks built natively into the kernel.
+  - Stealth root concealment bypassing root checkers, banking apps, and integrity checks.
+  - Features enabled:
+    - Path hiding (`CONFIG_KSU_SUSFS_SUS_PATH=y`)
+    - Mount hiding & fake mnt_id allocation (`CONFIG_KSU_SUSFS_SUS_MOUNT=y`)
+    - Inode/kstat spoofing (`CONFIG_KSU_SUSFS_SUS_KSTAT=y`)
+    - Uname spoofing (`CONFIG_KSU_SUSFS_SPOOF_UNAME=y`)
+    - Bootconfig/cmdline spoofing (`CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y`)
+    - Open redirect (`CONFIG_KSU_SUSFS_OPEN_REDIRECT=y`)
+    - Maps hiding (`CONFIG_KSU_SUSFS_SUS_MAP=y`)
+    - Priority UID filter (`CONFIG_KSU_SUSFS_PRIORITY_UID_FILTER=y`)
+- **NTSYNC Driver Support**:
+  - Direct kernel driver at `/dev/ntsync` for fast Windows NT synchronization primitives.
+  - Massive latency reduction and FPS boost for Windows translation layers (Wine, Proton, Winlator, Mobox).
+- **KernelSU-Next Integration (`dev-susfs`)**:
+  - Integrated with KernelSU-Next direct hooks for zero kprobe overhead and maximum stealth.
+  - Compatible with KernelSU-Next Manager v3.4.2+.
+
+## Release Details
+
+- **Kernel:** Linux `5.10.272`
+- **GKI Version:** Android 12 GKI (`-android12-9-`)
+- **Kernel Source:** [`Raffxzr/DarkniusX-android12-5.10`](https://github.com/Raffxzr/DarkniusX-android12-5.10) @ `ec838f9e1114fb90dfb4ddbcdfe3d2114bdf7860`
+- **Compiler:** Android Clang `r416183b` (LLVM 12.0.7)
+- **Linker & LTO:** LLD + ThinLTO
+- **Localversion:** `-DarkniusX`
 
 ## Files
 
-| File | Variant | Notes |
+| File | Variant | Description |
 |---|---|---|
-| `DarkniusX-vanilla-5.10.272-20261105.zip` | Vanilla | No root |
-| `DarkniusX-ksu-5.10.272-20261105.zip` | KernelSU Next | Root via KernelSU-Next Manager |
-| `SHA256SUMS` | Both | Checksums |
-| `BUILD_INFO-vanilla.txt`, `BUILD_INFO-ksu.txt` | Both | Build details |
-| `config-vanilla`, `config-ksu` | Both | Final kernel config |
-| `manifest.xml` | — | Locked repo manifest |
+| `DarkniusX-ksu-5.10.272-20261111.zip` | KernelSU Next + SUSFS | AnyKernel3 flashable zip with root & SUSFS |
+| `BUILD_INFO.txt` | Build metadata | CI build information and compiler versions |
+| `SHA256SUMS.txt` | Checksum | SHA256 checksums for package verification |
 
-## Compatibility
+## How to Flash
 
-- **Universal** for every device running GKI `android12-5.10` (KMI 9); there is
-  no device/codename check (`do.devicecheck=0`).
-- Required: the stock `uname -r` contains `-android12-9-` (or the installed
-  kernel is a previous DarkniusX build) **and** the kernel lives in the `boot`
-  partition.
-- **Not compatible** with `-android13-11-`, other KMIs, or devices whose kernel
-  only exists in `vendor_boot`.
-- The AnyKernel3 zip only replaces the kernel in the `boot` partition; it does
-  not touch `vendor_boot`, `vendor_dlkm`, `dtbo`, or the GPU overclock module.
-- The installer aborts automatically if the KMI guard is not satisfied.
-
-Check the device before flashing:
-
-```bash
-adb shell uname -r
-adb shell getprop ro.product.device
-adb shell getprop ro.board.platform
-```
-
-## How to flash
-
-See [`docs/FLASHING.md`](docs/FLASHING.md). In short:
-
-1. Back up `boot` (and `vendor_boot`/`vendor_dlkm` if present).
-2. Flash the zip from a custom recovery (TWRP/OrangeFox) or via sideload.
-3. Boot and verify `uname -r`, WiFi/BT, touch, camera, and audio.
-
-## Known issues
-
-- Not yet tested on a physical device in the first release; see the status note
-  in the README.
-- `KASAN`/`KASAN_HW_TAGS`, `PAGE_OWNER`, `DEBUG_LIST`, `SCHEDSTATS`, and
-  `SCHED_DEBUG` remain enabled for GKI KMI compatibility.
-- Full LTO is not recommended on machines with less than 32 GiB RAM.
+1. Boot device into custom recovery (**TWRP** / **OrangeFox**) or use **KernelFlasher**.
+2. **(Important)** Create a backup of your existing `boot` partition.
+3. Flash `DarkniusX-ksu-5.10.272-20261111.zip`.
+4. Reboot system.
+5. Install **KernelSU-Next Manager** (v3.4.2) to manage root permissions.
+6. (Optional) Install the **SUSFS module** and companion APK to configure stealth features.
 
 ## Rollback
 
-Restore `boot-stock.img` via fastboot or recovery:
-
+To return to the original kernel, restore your backup or flash the stock boot image:
 ```bash
 fastboot flash boot boot-stock.img
 fastboot reboot
 ```
-
-## Checksum
-
-See the `SHA256SUMS` file on this release page.
